@@ -24,7 +24,7 @@
 <meta property="og:description" content="Objective-C 基础语法发送消息 当某个对象初始化完成了，就可以向其发送消息，消息需要包括三个部分  receiver接收方：是一个指针，指向执行方法的对象 selector选择器：需要执行方法的方法名 arguments实参：以变量形式传递给方法的数值   [person sayHi:someName]; 向Person类的实例对象person发送sayHi消息，该消息会触发person">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-05-06T03:30:01.000Z">
-<meta property="article:modified_time" content="2022-05-06T05:34:04.274Z">
+<meta property="article:modified_time" content="2022-05-06T05:50:31.454Z">
 <meta property="article:author" content="goggles">
 <meta property="article:tag" content="iOS">
 <meta name="twitter:card" content="summary_large_image">
@@ -197,7 +197,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.4k 字
+      5.3k 字
     </span>
   
 
@@ -304,9 +304,9 @@
 <h3 id="Autorelease池和ARC"><a href="#Autorelease池和ARC" class="headerlink" title="Autorelease池和ARC"></a>Autorelease池和ARC</h3><ul>
 <li>Autorelease池：当对象收到autorelease消息时，某个自动释放池会成为该对象的临时拥有者。这样就可以解决这类问题：某个方法创建了一个新的对象，但是创建方又不需要成为该对象的拥有者。为了能返回新创建的对象，同时避免提前释放问题，就可以向新创建的对象发送autorelease消息。便捷方法借助自动释放池，将新创建的对象返回给调用方，又不产生内存管理问题。</li>
 <li>如果某个对象不是通过alloc方法或copy方法创建的，就很有可能在返回给调用方前收到过autorelease消息。调用方要根据具体的情况，保留该对象的所有权。否则，在自动释放池被销毁时，程序就会释放这个对象。</li>
-<li>@autoreleasepool指令后面跟一对花括号，可以创建一个自动释放池。在@autoreleasepool的花括号中，如果某个方法返回一个新创建的对象，而该方法的方法名不包含alloc和init，那么这个新创建的对象通常会被放入相应的自动释放池。在应用执行完某个@autoreleasepool中的程序段后，该自动释放池中的所有对象都会失去一个拥有者</li>
+<li>@autoreleasepool指令后面跟一对花括号，可以创建一个自动释放池。在@autoreleasepool的花括号中，如果某个方法返回一个新创建的对象，而该方法的方法名不包含alloc和init，那么这个新创建的对象</li>
 </ul>
-<h1 id="视图和视图层级结构"><a href="#视图和视图层级结构" class="headerlink" title="视图和视图层级结构"></a>视图和视图层级结构</h1>
+
             </div>
             <hr>
             <div>
