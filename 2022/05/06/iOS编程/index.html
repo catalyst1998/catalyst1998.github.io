@@ -24,12 +24,14 @@
 <meta property="og:description" content="Objective-C 基础语法发送消息 当某个对象初始化完成了，就可以向其发送消息，消息需要包括三个部分  receiver接收方：是一个指针，指向执行方法的对象 selector选择器：需要执行方法的方法名 arguments实参：以变量形式传递给方法的数值   [person sayHi:someName]; 向Person类的实例对象person发送sayHi消息，该消息会触发person">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://catalyst1998.github.io/img/hierarchy.png">
-<meta property="og:image" content="https://catalyst1998.github.io/img/beforeChangeBounds.png">
-<meta property="og:image" content="https://catalyst1998.github.io/img/afterChangeBounds.png">
+<meta property="og:image" content="https://catalyst1998.github.io/2022/05/06/img/beforeChangeBounds.png">
+<meta property="og:image" content="https://catalyst1998.github.io/2022/05/06/img/afterChangeBounds.png">
 <meta property="og:image" content="https://catalyst1998.github.io/img/controllerHierarchy.png">
 <meta property="og:image" content="https://catalyst1998.github.io/img/tabbar%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%9B%BE.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/firstResponder.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/weakDelegate.png">
 <meta property="article:published_time" content="2022-05-06T03:30:01.000Z">
-<meta property="article:modified_time" content="2022-05-07T06:14:03.137Z">
+<meta property="article:modified_time" content="2022-05-07T14:05:25.031Z">
 <meta property="article:author" content="goggles">
 <meta property="article:tag" content="iOS">
 <meta name="twitter:card" content="summary_large_image">
@@ -203,7 +205,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      8.2k 字
+      12k 字
     </span>
   
 
@@ -212,7 +214,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      69 分钟
+      103 分钟
     </span>
   
 
@@ -334,7 +336,11 @@
 </ul>
 </li>
 </ul>
-<p><img src="/../img/beforeChangeBounds.png" srcset="/img/loading.gif" lazyload alt="改变bounds属性前"><br><img src="/../img/afterChangeBounds.png" srcset="/img/loading.gif" lazyload alt="改变bounds属性后"><br>看图可知，外层的view大小和位置都没有发生改变，而修改了bounds属性后，内层的view的位置发生了偏移，这是因为修改了外层view的坐标系所导致的。<br>如果将父视图的bounds属性赋给子视图的frame属性，子视图将装满父视图</p>
+<p>改变bounds属性前:<br><img src="../img/beforeChangeBounds.png" srcset="/img/loading.gif" lazyload width="150" height="250"></p>
+<p>改变bounds属性后:<br><img src="../img/afterChangeBounds.png" srcset="/img/loading.gif" lazyload width="150" height="250"></p>
+<!-- ![改变bounds属性前](../img/beforeChangeBounds.png)
+![改变bounds属性后](../img/afterChangeBounds.png) -->
+<p>看图可知，外层的view大小和位置都没有发生改变，而修改了bounds属性后，内层的view的位置发生了偏移，这是因为修改了外层view的坐标系所导致的。<br>如果将父视图的bounds属性赋给子视图的frame属性，子视图将装满父视图</p>
 <h3 id="addSubview方法和superview属性"><a href="#addSubview方法和superview属性" class="headerlink" title="addSubview方法和superview属性"></a>addSubview方法和superview属性</h3><p>每个UIView对象都可以通过addSubview来添加子视图，并且每个UIView对象都有一个superview属性。当一个视图将另一个视图作为子视图加入，会自动创建相应的反向关联，显而易见superview属性是弱引用。</p>
 <h2 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h2><h3 id="重写dramRect方法重绘视图"><a href="#重写dramRect方法重绘视图" class="headerlink" title="重写dramRect方法重绘视图"></a>重写dramRect方法重绘视图</h3><p>ios应用启动时会开始一个运行循环（run loop）。运行循环的工作是监听事件，例如触摸。当事件发生时，运行循环会为相应的事件找到合适的处理方法。这些处理方法会调用其他方法，而这些方法又会调用更多其他方法，依此类推。只有当这些方法都执行完毕时，控制权才会再次回到运行循环。<br>　　当应用将控制权交回给运行循环时，运行循环首先会检查是否有等待重绘的视图（即在当前循环收到过setNeedsDisplay消息的视图），然后向所有等待重绘的视图发送drawRect:消息，最后视图层次结构中所有视图的图层再次组合成一幅完整的图像并绘制到屏幕上。<br>iOS做了两方面来优化来保证用户界面的流畅性—-不重绘显示内容没有改变的视图；每次事件处理周期中只发送一次drawrect消息。</p>
 <p>为了标记视图需要重绘，必须向其发送setNeedsDisplay消息，对于SDK提供的视图对象会自动在内容发生改变的时候发送消息，而自定义的UIView子类必须后动发送消息。</p>
@@ -347,7 +353,37 @@
 <p>视图控制器在刚被创建的时候，view属性被初始化为nil，当应用需要将管理器上的视图展示在屏幕上的时候，如果view属性是nil，才会调用loadview方法</p>
 <h3 id="根视图管理器"><a href="#根视图管理器" class="headerlink" title="根视图管理器"></a>根视图管理器</h3><p>我们可以通过视图管理器来创建视图层次机构，如果要将视图管理器的视图层次结构添加到window中，需要调用window的setRootViewController方法。当某个controller成为rootcontroller，window对象会将该controller的view作为子视图加入到窗口。</p>
 <h3 id="UITabBarController"><a href="#UITabBarController" class="headerlink" title="UITabBarController"></a>UITabBarController</h3><p>TBC可以保存一组视图控制器，实现在多个controller之间切换。TBC对象在屏幕底部显示一个tabbar，tab bar包括多个tab item，每一个item对应一个TBc对象所保存的视图控制器。通过点击tab item，tbc对象就会展示该标签项所对应的视图控制器的视图。<br>tabbarcontroller是uiviewcontroller的子类，也有一个view的属性，其指向一个包含两个子视图的uiview对象，分别是标签栏和当前选中的视图控制器的视图。<br><img src="/../img/tabbar%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%9B%BE.png" srcset="/img/loading.gif" lazyload></p>
-<h4 id="设置标签项tab-item"><a href="#设置标签项tab-item" class="headerlink" title="设置标签项tab item"></a>设置标签项tab item</h4><p>标签栏上的每一个item都可以显示标题和图片，通过视图控制器的tabbaritem属性来设置</p>
+<h4 id="设置标签项tab-item"><a href="#设置标签项tab-item" class="headerlink" title="设置标签项tab item"></a>设置标签项tab item</h4><p>标签栏上的每一个item都可以显示标题和图片，通过视图控制器的tabbaritem属性来设置。<br>在item对应的viewcontrol类重写initwithNibNameBundle，设置tabbarItem的title和image。<br>但是在appdelegate.m中却使用init方法来初始化viewcontroller。这是因为initwithNibNameBundle是UIViewController的指定初始化方法，当想视图控制器发送init消息的时候，会调用指定初始化方法，并传入两个nil参数。因此在appdelegate中使用init方法是可以的.</p>
+<h4 id="视图延迟加载"><a href="#视图延迟加载" class="headerlink" title="视图延迟加载"></a>视图延迟加载</h4><p>视图延迟加载机制，会在应用启动之后，默认显示第一个视图控制器的视图，其他的等到需要展示的时候再加载。 视图控制器上的viewDidLoad方法检查视图控制器的视图是否已经加载。如果视图已经加载完之后，在切换标签项也不会再次触发viewdidload方法<br>为了实现视图延迟加载，不应该再initwithnibnamebundle中访问view或者view的子视图，将所有需要对view进行初始化的操作全都放到viewdidload中实现。</p>
+<h4 id="访问视图"><a href="#访问视图" class="headerlink" title="访问视图"></a>访问视图</h4><p>通常需要在用户看到XIB文件中创建视图之前，对其进行初始化操作，但是根据延迟加载机制，不可能在视图控制器初始化方法中初始化视图，那么如何初始化？<br>主要有两种方法：viewDidLoad viewWillAppear</p>
+<ol>
+<li>viewDidLoad方法：应用启动后只调用一次</li>
+<li>viewWillAppear方法：每次需要展示视图控制器的view的时候都会调用</li>
+</ol>
+<p>需求：在reminderViewController中有一个子视图dataPicker，现在是允许用户选择任意时间，如果需要设置用户只能选择当前时间之后的时间。<br>那么datapicker子视图每次展示的时候都是不一样的，需要不停的初始化，那么就需要在viewwillappear中初始化。</p>
+<h1 id="深入学习"><a href="#深入学习" class="headerlink" title="深入学习"></a>深入学习</h1><h2 id="键值编码"><a href="#键值编码" class="headerlink" title="键值编码"></a>键值编码</h2><p>当NIB文件被加载之后，outlet便利是通过KVC的方式来设置的。键值编码valueForKey： 和 setValue：forKey方法来实现通过属性的名称来存取属性的值。</p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs prolog">id currentFido = [selectedObject valueForKey:@<span class="hljs-string">&quot;fido&quot;</span>];<br>[selectedObject setValue:value forKey:@<span class="hljs-string">&quot;fido&quot;</span>];<br></code></pre></td></tr></table></figure>
+<p>NIB文件在加载时会使用setValue:forKey:设置插座变量。例如，如果需要为某个对象设置一个名为rex的插座变量，那么该对象必须定义了setRex:方法或者具有_rex实例变量（或rex实例变量），否则在加载NIB文件时会抛出异常</p>
+<h2 id="Retina显示屏"><a href="#Retina显示屏" class="headerlink" title="Retina显示屏"></a>Retina显示屏</h2><h1 id="委托和文本输入"><a href="#委托和文本输入" class="headerlink" title="委托和文本输入"></a>委托和文本输入</h1><h2 id="UIResponder"><a href="#UIResponder" class="headerlink" title="UIResponder"></a>UIResponder</h2><p>UIResponder是UIKit框架的一个抽象类，包括很多子类：</p>
+<ul>
+<li>UIView</li>
+<li>UIViewController</li>
+<li>UIApplication</li>
+</ul>
+<p>UIResponder定义了一系列方法用于接收和处理用户事件，如触摸、运动事件（晃动）、功能控制（编辑文本、播放音乐）等。<br>系统会讲触摸事件发送到被触摸的视图，其他类型的事件会由第一响应者负责处理。UIWindow有一个fisrtResponder属性指向第一响应者。当用户点击textfield，该对象会成为第一响应者，firstResponder指针会指向该对象，之后应用接收到运动事件或者功能控制事件会就发送给第一响应者。<br><img src="/../img/firstResponder.png" srcset="/img/loading.gif" lazyload></p>
+<p>当某个UITextField对象或UITextView对象成为第一响应者时，屏幕会弹出键盘。除了用户点击之外，还可以在代码中向UITextField对象发送becomeFirstResponder消息，使其成为第一响应者。相反，如果要关闭键盘，则可以向UITextField对象发送resignFirstResponder消息，且要求该对象放弃第一响应者状态。一旦第一响应者不是UITextField对象，键盘就会消失。<br>大部分的视图并不需要称为第一响应者，如UISlider对象，该对象只需要处理触摸事件，不会接受其他类型的事件，因此不用称为第一响应者</p>
+<h2 id="文本框"><a href="#文本框" class="headerlink" title="文本框"></a>文本框</h2><p>UILabel用来显示文本，UITextField可以接受用户的输入。</p>
+<h3 id="设置textField的键盘"><a href="#设置textField的键盘" class="headerlink" title="设置textField的键盘"></a>设置textField的键盘</h3><p>UITextField对象有一系列属性用来设置弹出的键盘。</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-attr">textFiled.placeholder</span> = @<span class="hljs-string">&quot;Hypnotize me.&quot;</span><span class="hljs-comment">;</span><br><span class="hljs-attr">textFiled.returnKeyType</span> = UIReturnKeyDone<span class="hljs-comment">;</span><br></code></pre></td></tr></table></figure>
+<p>设置编辑栏的占位符文本和键盘的换行符的文本</p>
+<h2 id="委托"><a href="#委托" class="headerlink" title="委托"></a>委托</h2><p>在之前使用过Target-Action设计模式，是UIKit中常用的设计模式。该设计模式的工作方式：当某个特定事件发生时（如按下按钮），发生事件的一方会向特定的目标对象发送一个预设好的动作消息。但是这种设计模式的缺陷在于，时间和目标时一对一的。比如说按下按钮，目标就是处理点击事件。如果是比较复杂的事件就不能用这种模式处理。<br>UITextField对象具有一个委托属性delegate，这个委托是UITextFieldDelegate类型的。以下是委托方法。</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-class"><span class="hljs-keyword">@protocol</span> <span class="hljs-title">UITextFieldDelegate</span> &lt;<span class="hljs-title">NSObject</span>&gt;</span><br><br><span class="hljs-keyword">@optional</span><br><br>- (<span class="hljs-type">BOOL</span>)textFieldShouldBeginEditing:(<span class="hljs-built_in">UITextField</span> *)textField;        <span class="hljs-comment">// return NO to disallow editing.</span><br>- (<span class="hljs-type">void</span>)textFieldDidBeginEditing:(<span class="hljs-built_in">UITextField</span> *)textField;           <span class="hljs-comment">// became first responder</span><br>- (<span class="hljs-type">BOOL</span>)textFieldShouldEndEditing:(<span class="hljs-built_in">UITextField</span> *)textField;          <span class="hljs-comment">// return YES to allow editing to stop and to resign first responder status. NO to disallow the editing session to end</span><br>- (<span class="hljs-type">void</span>)textFieldDidEndEditing:(<span class="hljs-built_in">UITextField</span> *)textField;             <span class="hljs-comment">// may be called if forced even if shouldEndEditing returns NO (e.g. view removed from window) or endEditing:YES called</span><br>- (<span class="hljs-type">void</span>)textFieldDidEndEditing:(<span class="hljs-built_in">UITextField</span> *)textField reason:(<span class="hljs-built_in">UITextFieldDidEndEditingReason</span>)reason API_AVAILABLE(ios(<span class="hljs-number">10.0</span>)); <span class="hljs-comment">// if implemented, called in place of textFieldDidEndEditing:</span><br><br>- (<span class="hljs-type">BOOL</span>)textField:(<span class="hljs-built_in">UITextField</span> *)textField shouldChangeCharactersInRange:(<span class="hljs-built_in">NSRange</span>)range replacementString:(<span class="hljs-built_in">NSString</span> *)string;   <span class="hljs-comment">// return NO to not change text</span><br><br>- (<span class="hljs-type">void</span>)textFieldDidChangeSelection:(<span class="hljs-built_in">UITextField</span> *)textField API_AVAILABLE(ios(<span class="hljs-number">13.0</span>), tvos(<span class="hljs-number">13.0</span>));<br><br>- (<span class="hljs-type">BOOL</span>)textFieldShouldClear:(<span class="hljs-built_in">UITextField</span> *)textField;               <span class="hljs-comment">// called when clear button pressed. return NO to ignore (no notifications)</span><br>- (<span class="hljs-type">BOOL</span>)textFieldShouldReturn:(<span class="hljs-built_in">UITextField</span> *)textField;              <span class="hljs-comment">// called when &#x27;return&#x27; key pressed. return NO to ignore.</span><br><br><span class="hljs-keyword">@end</span><br></code></pre></td></tr></table></figure>
+<p><em>NOTE：在委托方法中通常将对象自身作为第一个参数，如果视图控制器有多个TextField对象，她们的委托都是该视图控制器，那么就需要根据textFielf参数获得相应的textField对象并执行不同的操作。</em></p>
+<h2 id="协议"><a href="#协议" class="headerlink" title="协议"></a>协议</h2><blockquote>
+<p>被委托对象：拥有一个delegate属性，以及有协议，协议中声明了一些方法<br>委托对象：委托对象需要根据协议实现相应的方法。并在头文件或者类扩展@interface指令后面 将遵守的协议写在尖括号里。<br>textField.delegate &#x3D; self;<br>textField对象就是被委托对象，self，即这里的视图控制器就是委托对象<br>textFielf对象委托视图控制器来完成一些callback<br>支持委托的对象，都有一个协议，声明了可以向该对象的委托对象发送的消息，委托对象需要根据需求实现相应的方法。<br>声明协议的语法是，使用@protocol指令 后面跟着协议名称 <NSObject><br>尖括号内包括了NSObject协议的全部方法。如何声明协议的新增方法，@end结束<br><em>NOTE：协议不是类，只是一组方法声明，协议本身不实现方法，只有委托对象才会实现协议里的方法，相当于市java中的接口的概念</em><br>协议中声明的方法可分为必须实现的@required和可选的@optional<br>被委托对象在调用可选方法之前，会像委托对象发送一个<code>respondsToSelector:</code>消息，判断委托对象是否实现了指定的方法。<br>需要注意的是，几乎所有的委托都是弱引用属性，这是为了避免对象和委托对象之间产生强引用循环。</p>
+</blockquote>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-keyword">@property</span>(<span class="hljs-keyword">nullable</span>, <span class="hljs-keyword">nonatomic</span>,<span class="hljs-keyword">weak</span>)   <span class="hljs-type">id</span>&lt;<span class="hljs-built_in">UITextFieldDelegate</span>&gt; delegate;             <span class="hljs-comment">// default is nil. weak reference</span><br><br></code></pre></td></tr></table></figure>
+<p><img src="/../img/weakDelegate.png" srcset="/img/loading.gif" lazyload></p>
 
             </div>
             <hr>
