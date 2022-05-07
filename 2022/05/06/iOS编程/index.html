@@ -23,11 +23,17 @@
 <meta property="og:site_name" content="Goggles&#39;s Zoom">
 <meta property="og:description" content="Objective-C 基础语法发送消息 当某个对象初始化完成了，就可以向其发送消息，消息需要包括三个部分  receiver接收方：是一个指针，指向执行方法的对象 selector选择器：需要执行方法的方法名 arguments实参：以变量形式传递给方法的数值   [person sayHi:someName]; 向Person类的实例对象person发送sayHi消息，该消息会触发person">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://catalyst1998.github.io/img/hierarchy.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/beforeChangeBounds.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/afterChangeBounds.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/controllerHierarchy.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/tabbar%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%9B%BE.png">
 <meta property="article:published_time" content="2022-05-06T03:30:01.000Z">
-<meta property="article:modified_time" content="2022-05-06T05:50:31.454Z">
+<meta property="article:modified_time" content="2022-05-07T06:14:03.137Z">
 <meta property="article:author" content="goggles">
 <meta property="article:tag" content="iOS">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://catalyst1998.github.io/img/hierarchy.png">
   
   
   <title>iOS编程 - Goggles&#39;s Zoom</title>
@@ -197,7 +203,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      5.3k 字
+      8.2k 字
     </span>
   
 
@@ -206,7 +212,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      45 分钟
+      69 分钟
     </span>
   
 
@@ -263,7 +269,7 @@
 <li><code>[self method]</code> self存在于方法中，是一个隐式局部变量，程序会自动为self赋值，只想收到消息的对象本身，类似于this。</li>
 <li><code>super method</code>super则是查找父类响应的方法<h3 id="初始化方法"><a href="#初始化方法" class="headerlink" title="初始化方法"></a>初始化方法</h3>所有类都是直接或者间接的继承NSObject类，从而都有init方法来初始化对象。可以通过override来重写init方法。任何一个类可以有多个初始化方法，但是必须选择一个作为指定初始化方法（designated initializer）。<br>为什么初始化方法的返回类型是instancetype？这个关键字表示方法的返回类型和调用方法的对象类型相同。之所以返回这种类型是因为，子类就继承init方法，子类执行init方法返回的类型应该是子类类型而不是父类类型（多态性）。<br>id类型，指的是指向任意对象的指针，不仅可以用在返回值类型上也可以用来表示变量和方法参数的类型。注意用id表示指针的时候不需要再加*。<br>在初始化实例变量的时候，一定不要使用存取方法，应该直接访问实例变量。<br>在实现完指定初始化方法之后，其他的初始化方法也要调用指定初始化方法，并传入参数和其他默认值。</li>
 </ul>
-<h2 id="ARC"><a href="#ARC" class="headerlink" title="ARC"></a>ARC</h2><h3 id="栈和堆"><a href="#栈和堆" class="headerlink" title="栈和堆"></a>栈和堆</h3><h4 id="栈"><a href="#栈" class="headerlink" title="栈"></a>栈</h4><p>当程序执行某个方法的时候，就会从内存中一个叫栈的空间分配一块内存空间，这个分配的内存叫做帧。帧保存了方法内声明的变量的值（即局部变量），返回地址等，当方法执行完毕之后从栈顶弹出<br>堆Heap：也是内存中的一个区域，和栈是分开的，堆中包含了大量的无序的活动对象，需要通过指针来保存这些对象在堆中的地址。当程序向某个类发送alloc消息的时候，系统就会从堆中分配一块内存存放类声明的实例变量等。堆中的对象不会自动释放，且堆的空间是有限了，因此需要进行内存管理。Apple提供了ARC，即自动引用计数来管理内存，在引入ARC之前都是手动引用计数MRC。</p>
+<h2 id="ARC"><a href="#ARC" class="headerlink" title="ARC"></a>ARC</h2><h3 id="栈和堆"><a href="#栈和堆" class="headerlink" title="栈和堆"></a>栈和堆</h3><p>当程序执行某个方法的时候，就会从内存中一个叫栈的空间分配一块内存空间，这个分配的内存叫做帧。帧保存了方法内声明的变量的值（即局部变量），返回地址等，当方法执行完毕之后从栈顶弹出<br>堆Heap：也是内存中的一个区域，和栈是分开的，堆中包含了大量的无序的活动对象，需要通过指针来保存这些对象在堆中的地址。当程序向某个类发送alloc消息的时候，系统就会从堆中分配一块内存存放类声明的实例变量等。堆中的对象不会自动释放，且堆的空间是有限了，因此需要进行内存管理。<br>Apple提供了ARC，即自动引用计数来管理内存，在引入ARC之前都是手动引用计数MRC。</p>
 <h3 id="对象所有权"><a href="#对象所有权" class="headerlink" title="对象所有权"></a>对象所有权</h3><p>指针变量暗含了对其所指的对象的所有权ownership</p>
 <ul>
 <li>当某个方法有一个指向其他对象的局部变量，则称该变量拥有该变量所指的对象</li>
@@ -284,6 +290,11 @@
 <li>弱引用weak reference：该特性指针变量指向某个对象不会使其拥有者个数增加</li>
 </ul>
 <p>弱引用适合解决强引用循环引起的内存泄漏问题，即当两个或者两个以上的对象相互持有强引用特性的指针，会引起强引用循环，对象之间因为相互持有而无法通过ARC机制来释放。<br>在CItem类中，有两个实例变量，_containedItem 、 _container分别表示添加物品和属于其他物品。当实例对象backpack containedItem实例变量指向 实例对象calculator，并且calculator container指向 backpack，这里就存在强引用循环。如果此时将指向两个对象的指针置为nil，则程序无法再使用这两个对象，并且这两个对象会一直占用内存。<br>因此要解决强引用问题，需要先确认对象之间的父子关系，如上面的backpack是父对象，calculator是子对象，父对象的指针为强引用特性，子对象指针为弱引用特性（ _ _ weak修饰变量)</p>
+<h3 id="Autorelease池和ARC"><a href="#Autorelease池和ARC" class="headerlink" title="Autorelease池和ARC"></a>Autorelease池和ARC</h3><ul>
+<li>Autorelease池：当对象收到autorelease消息时，某个自动释放池会成为该对象的临时拥有者。这样就可以解决这类问题：某个方法创建了一个新的对象，但是创建方又不需要成为该对象的拥有者。为了能返回新创建的对象，同时避免提前释放问题，就可以向新创建的对象发送autorelease消息。便捷方法借助自动释放池，将新创建的对象返回给调用方，又不产生内存管理问题。</li>
+<li>如果某个对象不是通过alloc方法或copy方法创建的，就很有可能在返回给调用方前收到过autorelease消息。调用方要根据具体的情况，保留该对象的所有权。否则，在自动释放池被销毁时，程序就会释放这个对象。</li>
+<li>@autoreleasepool指令后面跟一对花括号，可以创建一个自动释放池。在@autoreleasepool的花括号中，如果某个方法返回一个新创建的对象，而该方法的方法名不包含alloc和init，那么这个新创建的对象</li>
+</ul>
 <h2 id="属性"><a href="#属性" class="headerlink" title="属性"></a>属性</h2><p>再引入属性之前，需要为每个类声明一个实例变量并且实现相应地存取方法。引入属性后，通过声明属性就可以完成以上两步，大大减少了代码量且易于理解。</p>
 <h3 id="声明属性"><a href="#声明属性" class="headerlink" title="声明属性"></a>声明属性</h3><p>语法</p>
 <figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-keyword">@property</span> (options) 属性类型 属性名称;<br><span class="hljs-keyword">@property</span> (<span class="hljs-keyword">strong</span>,<span class="hljs-keyword">readwrite</span>) <span class="hljs-built_in">NSString</span> *itemName;<br></code></pre></td></tr></table></figure>
@@ -300,12 +311,43 @@
 </ol>
 <h3 id="属性合成"><a href="#属性合成" class="headerlink" title="属性合成"></a>属性合成</h3><p>再头文件中声明属性时，只会生成存取方法的声明，为了让属性生成实例变量和存取方法，属性必须被合成synthesized。默认情况下，编译器会自动合成属性并生成默认的实例变量和存取方法。但如果需要自定义合成方式，要在实现文件中使用@synthesize指令。</p>
 <figure class="highlight less"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs less"><span class="hljs-comment">// 创建存取方法，方法名是age和setAge:，</span><br><br>  　　<span class="hljs-comment">// 同时创建实例变量_age</span><br><br>  　　<span class="hljs-variable">@synthesize</span> age = _age;<br><span class="hljs-comment">//赋值号左边的age表示需要创建存取方法，方法名是age和setAge:。右边的_age表示需要创建实例变量，变量名为_age。</span><br><br><span class="hljs-comment">//也可以不写实例变量的变量名，那么变量名回合方法名相同 </span><br><span class="hljs-comment">//两者等价</span><br><span class="hljs-variable">@synthesize</span> age;<br><span class="hljs-variable">@synthesize</span> age = age;<br></code></pre></td></tr></table></figure>
-
-<h3 id="Autorelease池和ARC"><a href="#Autorelease池和ARC" class="headerlink" title="Autorelease池和ARC"></a>Autorelease池和ARC</h3><ul>
-<li>Autorelease池：当对象收到autorelease消息时，某个自动释放池会成为该对象的临时拥有者。这样就可以解决这类问题：某个方法创建了一个新的对象，但是创建方又不需要成为该对象的拥有者。为了能返回新创建的对象，同时避免提前释放问题，就可以向新创建的对象发送autorelease消息。便捷方法借助自动释放池，将新创建的对象返回给调用方，又不产生内存管理问题。</li>
-<li>如果某个对象不是通过alloc方法或copy方法创建的，就很有可能在返回给调用方前收到过autorelease消息。调用方要根据具体的情况，保留该对象的所有权。否则，在自动释放池被销毁时，程序就会释放这个对象。</li>
-<li>@autoreleasepool指令后面跟一对花括号，可以创建一个自动释放池。在@autoreleasepool的花括号中，如果某个方法返回一个新创建的对象，而该方法的方法名不包含alloc和init，那么这个新创建的对象</li>
+<h3 id="类扩展"><a href="#类扩展" class="headerlink" title="类扩展"></a>类扩展</h3><p>将属性声明在头文件和类扩展中的区别？</p>
+<ul>
+<li>在头文件中声明的属性和方法对其他类是可见的，但有些属性是需要隐藏的</li>
+<li>对于那些只会用在类内部的属性和方法就应该声明在类扩展中。这样就避免了暴露内部实现细节，保证头文件中全是供其他类使用的属性的方法。</li>
+<li>子类无法访问父类在类扩展中声明的属性和方法。</li>
 </ul>
+<h1 id="视图与视图层次结构"><a href="#视图与视图层次结构" class="headerlink" title="视图与视图层次结构"></a>视图与视图层次结构</h1><h2 id="视图层次结构"><a href="#视图层次结构" class="headerlink" title="视图层次结构"></a>视图层次结构</h2><p>一般来说，应用只有一个UIWindow对象，UIWindow作为一个容器，可以包含所有的视图。应用在启动时创建并设置UIWindow对象，并添加其他视图作为子视图，子视图还可以有子视图，因此构成了层次结构。<br><img src="/../img/hierarchy.png" srcset="/img/loading.gif" lazyload alt="视图层次结构"><br>视图层次结构形成之后，需要将其绘制到屏幕上，绘制的过程可分为两步：</p>
+<ol>
+<li>每个视图分别绘制自己，将自己绘制在图层layer上</li>
+<li>所有的视图的图层组合成一幅图像在绘制到屏幕上。</li>
+</ol>
+<h3 id="frame属性和bounds属性"><a href="#frame属性和bounds属性" class="headerlink" title="frame属性和bounds属性"></a>frame属性和bounds属性</h3><p>在创建UIView的子类之后，通常都会有一个初始化方法<code>initWithFram:(CGRect)frame</code></p>
+<ul>
+<li>视图的frame属性保存的是视图的大小和<strong>相对于父视图的位置</strong>。因为CGRect由CGPoint和CGSize组成。需要注意的是，point的值是相对于父视图的原点坐标。<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs awk">frame = CGRectMake(<span class="hljs-number">150</span>,<span class="hljs-number">200</span>,<span class="hljs-number">160</span>,<span class="hljs-number">160</span>);<br><span class="hljs-regexp">//</span>origin(<span class="hljs-number">150</span>,<span class="hljs-number">200</span>) size(<span class="hljs-number">160</span>,<span class="hljs-number">160</span>)<br><span class="hljs-regexp">//</span>origin.x = <span class="hljs-number">150</span> size.height =<span class="hljs-number">160</span>;<br></code></pre></td></tr></table></figure>
+<em>NOTE:这些数值的单位是points不是pixels像素，因为不同屏幕points和分辨率有关。</em></li>
+<li>bounds属性定义了一个矩形范围，表示该视图的绘制区域。</li>
+<li>frame属性和bounds属性的区别：<ul>
+<li>这两个属性所代表的矩形大小是一致的</li>
+<li>frame表示的矩形的位置是相对于父视图的坐标系</li>
+<li>bounds吊饰的矩形位于自己定义的坐标系，可以修改bounds中point来改变其子视图的的位置</li>
+</ul>
+</li>
+</ul>
+<p><img src="/../img/beforeChangeBounds.png" srcset="/img/loading.gif" lazyload alt="改变bounds属性前"><br><img src="/../img/afterChangeBounds.png" srcset="/img/loading.gif" lazyload alt="改变bounds属性后"><br>看图可知，外层的view大小和位置都没有发生改变，而修改了bounds属性后，内层的view的位置发生了偏移，这是因为修改了外层view的坐标系所导致的。<br>如果将父视图的bounds属性赋给子视图的frame属性，子视图将装满父视图</p>
+<h3 id="addSubview方法和superview属性"><a href="#addSubview方法和superview属性" class="headerlink" title="addSubview方法和superview属性"></a>addSubview方法和superview属性</h3><p>每个UIView对象都可以通过addSubview来添加子视图，并且每个UIView对象都有一个superview属性。当一个视图将另一个视图作为子视图加入，会自动创建相应的反向关联，显而易见superview属性是弱引用。</p>
+<h2 id="视图"><a href="#视图" class="headerlink" title="视图"></a>视图</h2><h3 id="重写dramRect方法重绘视图"><a href="#重写dramRect方法重绘视图" class="headerlink" title="重写dramRect方法重绘视图"></a>重写dramRect方法重绘视图</h3><p>ios应用启动时会开始一个运行循环（run loop）。运行循环的工作是监听事件，例如触摸。当事件发生时，运行循环会为相应的事件找到合适的处理方法。这些处理方法会调用其他方法，而这些方法又会调用更多其他方法，依此类推。只有当这些方法都执行完毕时，控制权才会再次回到运行循环。<br>　　当应用将控制权交回给运行循环时，运行循环首先会检查是否有等待重绘的视图（即在当前循环收到过setNeedsDisplay消息的视图），然后向所有等待重绘的视图发送drawRect:消息，最后视图层次结构中所有视图的图层再次组合成一幅完整的图像并绘制到屏幕上。<br>iOS做了两方面来优化来保证用户界面的流畅性—-不重绘显示内容没有改变的视图；每次事件处理周期中只发送一次drawrect消息。</p>
+<p>为了标记视图需要重绘，必须向其发送setNeedsDisplay消息，对于SDK提供的视图对象会自动在内容发生改变的时候发送消息，而自定义的UIView子类必须后动发送消息。</p>
+<h3 id="UIScrollView"><a href="#UIScrollView" class="headerlink" title="UIScrollView"></a>UIScrollView</h3><h4 id="两个尺寸的区别"><a href="#两个尺寸的区别" class="headerlink" title="两个尺寸的区别"></a>两个尺寸的区别</h4><p>UIScrollView对象适用于那些尺寸大于屏幕的视图。<br>scrollView有两个size，一个是自身的fram的size指的是这个scrollView展示在屏幕上的大小；另一个size是scrollView的contentsize，即它需要呈现的内容的大小。可以把scrollView的大小想象成是镜头的大小，而contentView的大小是需要显示的景观大小。</p>
+<h4 id="拖动和分页"><a href="#拖动和分页" class="headerlink" title="拖动和分页"></a>拖动和分页</h4><p>当contentsize大于scrollview本身的大小时，可以通过拖拽屏幕实现展示不同的内容。<br>scrollview上的子view大小和scrollview对象的大小相同时，如果想实现拖拽时scrollview的边和子view的边对齐显示，那么就需要设置scrollView的pagingEnabled属性为YES，实现分页的效果</p>
+<h2 id="视图控制器"><a href="#视图控制器" class="headerlink" title="视图控制器"></a>视图控制器</h2><p>视图控制器是UIViewController类或其子类的对象。每个视图控制器辅助管理一个视图层次结构，包括创建视图层次结构中的视图，处理用户事件，将整个层次结构添加到window中。</p>
+<h3 id="UIViewController的View属性"><a href="#UIViewController的View属性" class="headerlink" title="UIViewController的View属性"></a>UIViewController的View属性</h3><p>view属性指向一个UIview对象，viewcontroller之所以可以管理视图层次结构就是因为view就是层次结构的根视图。当我们将view作为window的子视图时，也会加入viewcontroller对象所管理的层次结构中<br><img src="/../img/controllerHierarchy.png" srcset="/img/loading.gif" lazyload alt="添加viewController之后的层次结构图"></p>
+<h3 id="controller创建视图层次结构"><a href="#controller创建视图层次结构" class="headerlink" title="controller创建视图层次结构"></a>controller创建视图层次结构</h3><p>视图控制器不会在其被创建出来的那一刻马上创建并载入相应的视图。只有当应用需要将某个视图控制器的视图显示到屏幕上时，相应的视图控制器才会创建其视图。这种延迟加载（lazy loading）视图的做法能提高内存的使用效率。<br>视图控制器可以通过两种方式创建视图层次结构。<br>•代码方式：<strong>覆盖UIViewController中的loadView方法。</strong> 在loadview中将self.view指向要加载的子view</p>
+<p>•文件方式：使用Interface Builder创建一个NIB文件，然后加入所需的视图层次结构，最后视图控制器会在运行时加载由该NIB文件编译而成的XIB文件。</p>
+<p>视图控制器在刚被创建的时候，view属性被初始化为nil，当应用需要将管理器上的视图展示在屏幕上的时候，如果view属性是nil，才会调用loadview方法</p>
+<h3 id="根视图管理器"><a href="#根视图管理器" class="headerlink" title="根视图管理器"></a>根视图管理器</h3><p>我们可以通过视图管理器来创建视图层次机构，如果要将视图管理器的视图层次结构添加到window中，需要调用window的setRootViewController方法。当某个controller成为rootcontroller，window对象会将该controller的view作为子视图加入到窗口。</p>
+<h3 id="UITabBarController"><a href="#UITabBarController" class="headerlink" title="UITabBarController"></a>UITabBarController</h3><p>TBC可以保存一组视图控制器，实现在多个controller之间切换。TBC对象在屏幕底部显示一个tabbar，tab bar包括多个tab item，每一个item对应一个TBc对象所保存的视图控制器。通过点击tab item，tbc对象就会展示该标签项所对应的视图控制器的视图。<br>tabbarcontroller是uiviewcontroller的子类，也有一个view的属性，其指向一个包含两个子视图的uiview对象，分别是标签栏和当前选中的视图控制器的视图。<br><img src="/../img/tabbar%E7%9A%84%E5%AF%B9%E8%B1%A1%E5%9B%BE.png" srcset="/img/loading.gif" lazyload></p>
+<h4 id="设置标签项tab-item"><a href="#设置标签项tab-item" class="headerlink" title="设置标签项tab item"></a>设置标签项tab item</h4><p>标签栏上的每一个item都可以显示标题和图片，通过视图控制器的tabbaritem属性来设置</p>
 
             </div>
             <hr>
