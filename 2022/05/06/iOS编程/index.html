@@ -33,9 +33,9 @@
 <meta property="og:image" content="https://catalyst1998.github.io/img/weakDelegate.png">
 <meta property="og:image" content="https://catalyst1998.github.io/img/%E5%93%8D%E5%BA%94%E9%93%BE.png">
 <meta property="article:published_time" content="2022-05-06T03:30:01.000Z">
-<meta property="article:modified_time" content="2022-05-10T14:52:48.893Z">
+<meta property="article:modified_time" content="2022-05-13T07:58:57.433Z">
 <meta property="article:author" content="goggles">
-<meta property="article:tag" content="iOS">
+<meta property="article:tag" content="iOS 语法">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://catalyst1998.github.io/img/hierarchy.png">
   
@@ -415,7 +415,7 @@
 <h2 id="运动效果"><a href="#运动效果" class="headerlink" title="运动效果"></a>运动效果</h2><blockquote>
 <p>ios设备内嵌了许多功能强大的传感器，例如加速传感器，磁场传感器和三轴陀螺仪等。应用可以通过这些感应器了解设备的速度、方向和角度，并实现有用的功能。例如，应用可以根据设备的方向自动将界面调整为横排模式或竖排模式。<br>应用可以通过UIInterpolatingMotionEffect类实现效果，设置方向，键路径，相对值，在添加到视图上。</p>
 </blockquote>
-<h1 id="深入学习"><a href="#深入学习" class="headerlink" title="深入学习"></a>深入学习</h1><h2 id="键值编码"><a href="#键值编码" class="headerlink" title="键值编码"></a>键值编码</h2><p>当NIB文件被加载之后，outlet便利是通过KVC的方式来设置的。键值编码valueForKey： 和 setValue：forKey方法来实现通过属性的名称来存取属性的值。</p>
+<h1 id="动画"><a href="#动画" class="headerlink" title="动画"></a>动画</h1><h1 id="深入学习"><a href="#深入学习" class="headerlink" title="深入学习"></a>深入学习</h1><h2 id="键值编码"><a href="#键值编码" class="headerlink" title="键值编码"></a>键值编码</h2><p>当NIB文件被加载之后，outlet便利是通过KVC的方式来设置的。键值编码valueForKey： 和 setValue：forKey方法来实现通过属性的名称来存取属性的值。</p>
 <figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs prolog">id currentFido = [selectedObject valueForKey:@<span class="hljs-string">&quot;fido&quot;</span>];<br>[selectedObject setValue:value forKey:@<span class="hljs-string">&quot;fido&quot;</span>];<br></code></pre></td></tr></table></figure>
 <p>NIB文件在加载时会使用setValue:forKey:设置插座变量。例如，如果需要为某个对象设置一个名为rex的插座变量，那么该对象必须定义了setRex:方法或者具有_rex实例变量（或rex实例变量），否则在加载NIB文件时会抛出异常</p>
 <h2 id="Retina显示屏"><a href="#Retina显示屏" class="headerlink" title="Retina显示屏"></a>Retina显示屏</h2><h2 id="main和UIApplication"><a href="#main和UIApplication" class="headerlink" title="main和UIApplication"></a>main和UIApplication</h2><p>在OC的main函数里的UIApplicationMain函数会创建一个UIApplication对象。每一个iOS应用只有一个UIApplication对象，该对象的作用是维护运行循环。一旦程序创建了该对象之后，运行循环就会一直循环下去，main（）的执行也会因此阻塞。<br>此外，UIApplicationMain函数还会创建某个指定类的对象，并将其设置为UIApplication对象的delegate。该对象的类是由UIApplicationMain函数的最后一个实参指定的，该实参的类型是NSString对象，代表的是某个类的类名。所以在以上这段代码中，UIApplicationMain会创建一个BNRAppDelegate对象，并将其设置为UIApplication对象的delegate。<br>在应用启动运行循环并开始接收事件前，UIApplication对象会向其委托发送一个特定的消息，使应用能有机会完成相应的初始化工作。这个消息的名称是application:didFinishLaunchingWithOptions:</p>
@@ -433,7 +433,7 @@
                   <div class="post-meta">
                     <i class="iconfont icon-tags"></i>
                     
-                      <a class="hover-with-bg" href="/tags/iOS/">iOS</a>
+                      <a class="hover-with-bg" href="/tags/iOS-%E8%AF%AD%E6%B3%95/">iOS 语法</a>
                     
                   </div>
                 
@@ -449,6 +449,12 @@
                 <div class="post-prevnext">
                   <article class="post-prev col-6">
                     
+                    
+                      <a href="/2022/05/13/iOS%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS文件系统</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
                     
                   </article>
                   <article class="post-next col-6">
