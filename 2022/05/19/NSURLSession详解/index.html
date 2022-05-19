@@ -1,0 +1,575 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="goggles">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="URL Loading System1 概述 URL 加载系统（URL Loading System）使用标准协议（如 https）或自定义协议提供对 URL 标识资源进行访问。URL Loading System 是异步执行的，这样 app 可以保持响应，并在 response 到达时处理数据或错误。使用URLSession实例创建一个或多个URLSessionTask实例，URLSession">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSURLSession详解">
+<meta property="og:url" content="https://catalyst1998.github.io/2022/05/19/NSURLSession%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="Goggles&#39;s Zoom">
+<meta property="og:description" content="URL Loading System1 概述 URL 加载系统（URL Loading System）使用标准协议（如 https）或自定义协议提供对 URL 标识资源进行访问。URL Loading System 是异步执行的，这样 app 可以保持响应，并在 response 到达时处理数据或错误。使用URLSession实例创建一个或多个URLSessionTask实例，URLSession">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/%E5%B1%9E%E6%80%A7.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/task.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/2.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/delegate.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/4.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/5.png">
+<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/6.png">
+<meta property="article:published_time" content="2022-05-19T15:33:03.000Z">
+<meta property="article:modified_time" content="2022-05-19T15:33:28.412Z">
+<meta property="article:author" content="goggles">
+<meta property="article:tag" content="iOS networking">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png">
+  
+  
+  <title>NSURLSession详解 - Goggles&#39;s Zoom</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"catalyst1998.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="NSURLSession详解">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-19 23:33" pubdate>
+        2022年5月19日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      9.5k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      80 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">NSURLSession详解</h1>
+            
+            <div class="markdown-body">
+              <h1 id="URL-Loading-System"><a href="#URL-Loading-System" class="headerlink" title="URL Loading System"></a>URL Loading System</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 概述</h2><p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png" srcset="/img/loading.gif" lazyload alt="overview"></p>
+<p>URL 加载系统（URL Loading System）使用标准协议（如 https）或自定义协议提供对 URL 标识资源进行访问。URL Loading System 是异步执行的，这样 app 可以保持响应，并在 response 到达时处理数据或错误。<br>使用URLSession实例创建一个或多个URLSessionTask实例，URLSessionTask实例可以拉取数据并将数据返回到 app、下载文件，或将文件、数据上传到远程服务器。使用URLSessionConfiguration对象配置URLSession的实例 session（会话），URLSessionConfiguration对象可以配置 caches、cookies 策略，以及是否允许使用数据流量等。<br>可以使用一个 session 重复创建 task。例如，浏览器为正常浏览和无痕模式使用单独的 session，无痕浏览不会保存数据到磁盘。</p>
+<h2 id="2-URLSessionConfiguration"><a href="#2-URLSessionConfiguration" class="headerlink" title="2 URLSessionConfiguration"></a>2 URLSessionConfiguration</h2><p>URLSessionConfiguration相当于是管家，负责为seesion配置在网络交互过程中的各种属性。<br>URLSessionConfiguration 允许通过各种属性来设置configuration，包括setting cookie policies、setting security policies、setting caching policies、Setting HTTP Policy and Proxy Properties、Supporting Background Transfers等</p>
+<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/%E5%B1%9E%E6%80%A7.png" srcset="/img/loading.gif" lazyload alt="configuration属性"></p>
+<p>从上图上可以看到常用的属性：<code>allowsCellularAccess</code>–是否允许访问蜂窝网, <code>HTTPMaximumConnectionsPerHost</code>–最大连接数, <code>requestCachePolicy</code>–cache策略等</p>
+<p>apple提供了三种类型的configuration</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs objective-c">@property (class, readonly, strong) NSURLSessionConfiguration *defaultSessionConfiguration;<br>@property (class, readonly, strong) NSURLSessionConfiguration *ephemeralSessionConfiguration;<br>+ (NSURLSessionConfiguration *)backgroundSessionConfigurationWithIdentifier:(NSString *)identifier API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));<br></code></pre></td></tr></table></figure>
+<p>官方对这几种类型的configuration的解释：</p>
+<blockquote>
+<ul>
+<li>The singleton shared session (which has no configuration object) is for basic requests. It’s not as customizable as sessions that you create, but it serves as a good starting point if you have very limited requirements. You access this session by calling the shared class method. See that method’s discussion for more information about its limitations.</li>
+<li>Default sessions behave much like the shared session (unless you customize them further), but let you obtain data incrementally using a delegate. You can create a default session configuration by calling the default method on the URLSessionConfiguration class.</li>
+<li>Ephemeral sessions are similar to default sessions, but they don’t write caches, cookies, or credentials to disk. You can create an ephemeral session configuration by calling the ephemeral method on the URLSessionConfiguration class.</li>
+<li>Background sessions let you perform uploads and downloads of content in the background while your app isn’t running. You can create a background session configuration by calling the backgroundSessionConfiguration(_:) method on the URLSessionConfiguration class.</li>
+</ul>
+</blockquote>
+<p>对于shared session和default其实比较相似，只不过default可以自定义一些参数。default，it uses the disk-persisted global cache,credential and cookie storage objects. Ephemeral, store all data in memory.<br>其中<code>backgroundSessionConfiguration:</code>的<code>identifier</code>参数在整个app中必须是唯一的，如果出现重复其后果是严重的！<br>通过该identifier，我们可以创建新的background session，用于获取与其绑定的download or upload response。</p>
+<h2 id="3-URLSessionTask"><a href="#3-URLSessionTask" class="headerlink" title="3 URLSessionTask"></a>3 URLSessionTask</h2><blockquote>
+<p>NSURLSessionTask - a cancelable object that refers to the lifetime of processing a given request.<br>URLSessionTask是真正干活的人，但他并没有初始方法，必须归属于seesion。<br>URLSessionTask是URL会话任务的抽象类，有四个具体的子类<br><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/task.png" srcset="/img/loading.gif" lazyload alt="3"></p>
+</blockquote>
+<ul>
+<li><p><code>URLSessionDataTask</code>：Use this task for GET requests to retrieve data from servers to memory.<br>使用 <code>dataTask(with:)</code>方法创建<code>URLSessionDataTask</code>实例，datatask 用于请求资源(如：JSON、XML格式的数据），将服务器的响应作为一个或多个<code>NSData</code>对象返回到内存中。Default、ephemeral、shared session 支持<code>URLSessionDataTask</code>，<code>backgroundsession</code> 不支持<code>URLSessionDataTask</code>。</p>
+</li>
+<li><p><code>URLSessionUploadTask</code>：Use this task to upload a file from disk to a web service via a POST or PUT method.<br>使用 <code>uploadTask(with:from:)</code>方法创建<code>URLSessionUploadTask</code>实例，用于通过HTTP协议向服务器上传数据或文件,URLSessionUploadTask继承自URLSessionDataTask。使用URLSessionUploadTask 可以很方便为 request 提供 body（例如，POST 或 PUT），还可以在收到 response 前上传数据。此外，upload task 支持后台会话。<br>在 iOS 中，为 background session 创建 upload task 时，系统会将文件复制到临时目录，然后从临时目录上传。</p>
+</li>
+<li><p>URLSessionDownloadTask：Use this task to download a file from a remote service to a temporary file location.<br>使用<code>downloadTask(with:)</code>方法创建URLSessionDownloadTask 实例，download task 将资源直接下载到磁盘上的文件。Download task 支持任何类型的会话。download task可以pause、resume</p>
+</li>
+<li><p>URLSessionStreamTask：使用streamTask(withHostName:port:)或streamTask(with:)方法创建URLSessionStreamTask实例。流任务（stream task）从主机、端口或网络服务建立 TCP&#x2F;IP连接。</p>
+</li>
+</ul>
+<p><em>NOTE，在创建完任务之后，需要调用resume 方法才会启动任务。在任务完成或失败前，session 会强引用 task。如果没有特别用途，不需要维护对任务的引用。</em></p>
+<h2 id="4-URLSession"><a href="#4-URLSession" class="headerlink" title="4 URLSession"></a>4 URLSession</h2><h3 id="4-1-URLSession-overview"><a href="#4-1-URLSession-overview" class="headerlink" title="4.1 URLSession overview"></a>4.1 URLSession overview</h3><p>URLSession is both a class and a suite of classes for handling HTTP- and HTTPS-based requests.<br>URLSession是整个体系中的领导。<br><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/2.png" srcset="/img/loading.gif" lazyload alt="2"></p>
+<p><em>NOTE：一个session可以创建多个task，并且session中的所有的task共享configuration</em></p>
+<h3 id="4-2-Create-URLSession"><a href="#4-2-Create-URLSession" class="headerlink" title="4.2 Create URLSession"></a>4.2 Create URLSession</h3><p><a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/foundation/nsurlsessionconfiguration?language=objc#topics">官方文档</a></p>
+<blockquote>
+<p>Configuration options for an NSURLSession.  When a session is created, a copy of the configuration object is made - you cannot modify the configuration of a session after it has been created.<br>可以通过单例sharedSession来使用session，也可以通过URLSessionConfiguration来创建configuration，配置session。</p>
+</blockquote>
+<p><strong>创建NSURLSession的三个类方法</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs obejctive-c">// 使用default configuration并且该session中的task必须提供completionHandler<br>+ (NSURLSession *)sharedSession;<br><br>// 该session中的task必须提供completionHandler<br>+ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration;<br><br>+ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id&lt;NSURLSessionDelegate&gt;)delegate delegateQueue:(NSOperationQueue *)queue;<br></code></pre></td></tr></table></figure>
+<ul>
+<li>NOTE：</li>
+</ul>
+<ul>
+<li>在创建session的时候会拷贝configuration，并且在创建session之后，不允许修改configuration。</li>
+<li>NSURLSession对delegate是strong reference，直到我们显式地调用 invalidateAndCancel 或 resetWithCompletionHandler:方法。因此，在使用过程中要注意retain cycle。*</li>
+</ul>
+<h2 id="5-URLSessionDelegate"><a href="#5-URLSessionDelegate" class="headerlink" title="5 URLSessionDelegate"></a>5 URLSessionDelegate</h2><blockquote>
+<p>NSURLSessionDelegate specifies the methods that a session delegate may respond to.  There are both session specific messages (for example, connection based auth) as well as task based messages.</p>
+</blockquote>
+<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/delegate.png" srcset="/img/loading.gif" lazyload alt="3"></p>
+<p>URLSessionDelegate定义了URLSession实例调用delegate处理session事件的方法。除实现URLSessionDelegate协议内方法，大部分 delegate 还需要实现URLSessionTaskDelegate、URLSessionDataDelegate、URLSessionDownloadDelegate中的一个或多个协议，以便处理 task 级事件，<br>URLSessionDelegate 有三个optional方法</p>
+<ol>
+<li><code>- (void)URLSession: didBecomeInvalidWithError: </code>该方法通知session是否失效<blockquote>
+<p>The last message a session receives.  A session will only become invalid because of a systemic error or when it has been explicitly invalidated, in which case the error parameter will be nil.</p>
+</blockquote>
+</li>
+</ol>
+<p>如果通过调用finishTasksAndInvalidate()方法使会话无效，会话会在最后一个 task 完成或失败后调用该方法<br>如果通过调用invalidateAndCancel()方法使会话无效，会话立即调用该方法。</p>
+<blockquote>
+<p>If implemented, when a connection level authentication challenge has occurred, this delegate will be given the opportunity to provide authentication credentials to the underlying connection. Some types of authentication will apply to more than one request on a given connection to a server (SSL Server Trust challenges). If this delegate message is not implemented, the behavior will be to use the default handling, which may involve user interaction.<br>2.<code> - (void)URLSession: didReceiveChallenge: completionHandler:</code> 该方法主要是处理远程服务器的会话级身份验证请求。遇到以下两种情况时会调用该方法：</p>
+</blockquote>
+<ol>
+<li>远程服务器请求客户端证书，或 Windows NT LAN Manager（NTLM）认证时会调用该方法以提供适当的凭据。</li>
+<li>当 session 与使用 SSL 或 TLS 的远程服务器首次建立连接时，使用该方法验证服务器的证书链。<br>如果未实现该方法，session 会调用URLSessionTaskDelegate协议中urlSession(_:task:didReceive:completionHandler:)方法，采用 task 级认证。</li>
+</ol>
+<blockquote>
+<p>If an application has received an application: handleEventsForBackgroundURLSession: completionHandler:  message, the session delegate will receive this message to indicate that all messages previously enqueued for this session have been delivered.  At this time it is safe to invoke the previously stored completion handler, or to begin any internal updates that will result in invoking the completion handler.<br>3. <code>- (void)URLSessionDidFinishEventsForBackgroundURLSession:</code></p>
+</blockquote>
+<h2 id="6-URLSessionTaskDelegate"><a href="#6-URLSessionTaskDelegate" class="headerlink" title="6 URLSessionTaskDelegate"></a>6 URLSessionTaskDelegate</h2><p>URLSessionTaskDelegate协议定义了 URL Session 实例调用 delegate 处理 task 级事件的方法。URLSessionTaskDelegate继承自URLSessionDelegate。</p>
+<h3 id="6-1-处理task生命周期"><a href="#6-1-处理task生命周期" class="headerlink" title="6.1 处理task生命周期"></a>6.1 处理task生命周期</h3><p>当任务完成是会调用<code>- (void)URLSession: task: didCompleteWithError:</code>方法。如果发生错误，error参数会包含失败的原因。</p>
+<h3 id="6-2-处理重定向"><a href="#6-2-处理重定向" class="headerlink" title="6.2 处理重定向"></a>6.2 处理重定向</h3><p>当远程服务器请求http重定向时，会调用<code>- (void)URLSession:task:willPerformHTTPRedirection:newRequest: completionHandler:</code>方法。<br>在该方法内必须调用 completion handler。如果允许重定向，为 completion handler 传入 request 参数；如果需要修改重定向，传入修改后的 request 对象；如果禁止重定向，则参数传 nil，此时得到的 response 就是重定向。</p>
+<h3 id="6-3-处理upload-task"><a href="#6-3-处理upload-task" class="headerlink" title="6.3 处理upload task"></a>6.3 处理upload task</h3><p>上传文件时会定期调用<code>- (void)URLSession: task: didSendBodyData: totalBytesSent: totalBytesExpectedToSend:</code>方法，以显示上传进度。</p>
+<h3 id="6-4-采集数据"><a href="#6-4-采集数据" class="headerlink" title="6.4 采集数据"></a>6.4 采集数据</h3><p>调用 <code>- (void)URLSession: task: didFinishCollectingMetrics:</code>方法，收集task完成的信息。其中materics参数封装了task的指标</p>
+<p><code>URLSessionTaskMetrics</code>类包含以下三个属性：</p>
+<ul>
+<li><code>taskInterval：</code>任务发起至任务完成的时间。</li>
+<li><code>redirectCount：</code>任务执行过程中重定向次数。</li>
+<li><code>transactionMetrics</code>：数组内元素为任务执行期间每个 request-response 事务度量标准。元素类型为URLSessionTaskTransactionMetrics。</li>
+</ul>
+<p><code>URLSessionTaskTransactionMetrics</code>对象封装执行会话任务期间收集的性能指标。每个<code>URLSessionTaskTransactionMetrics</code>对象包含了一个 request 和 response 属性，对应于 task 的 request 和 response。其也包含时间指标（temporal metrics），以fetchStartDate开始，以responseEndDate结束，以及其他特性，例如：networkProtocolName和resourceFetchType</p>
+<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/4.png" srcset="/img/loading.gif" lazyload alt="4"></p>
+<p>可以使用该方法查看请求各阶段所占用的时间，优化性能。</p>
+<h2 id="7-URLSessionDataDelegate"><a href="#7-URLSessionDataDelegate" class="headerlink" title="7 URLSessionDataDelegate"></a>7 URLSessionDataDelegate</h2><p><code>URLSessionDataDelegate</code>协议定义了 URL session 实例处理 data task、upload task 任务级事件方法。URLSessionDataDelegate继承自URLSessionTaskDelegate协议。</p>
+<p>Data task 接收到服务器的初始回复（header）时，会调用<code>- (void)URLSession: dataTask：didReceiveResponse:  completionHandler:</code>方法<br>只有在接收到 response header 后需要取消任务，或将任务转变为 download task 时才需要实现该方法。未实现该方法时，默认允许继续传输数据。<br>可以在completionHandler中传入URLSession.ResponseDisposition常量。</p>
+<ul>
+<li><code>URLSession.ResponseDisposition.allow：</code>任务继续作为 data task 执行。</li>
+<li><code>URLSession.ResponseDisposition.cancel：</code>取消任务。</li>
+<li><code>URLSession.ResponseDisposition.becomeDownload：</code>调用<code>urlSession(_:dataTask:didBecome:)</code>方法，创建一个 download task 取代当前的 data task。</li>
+</ul>
+<p>Data task 接收到数据时会调用urlSession(_:dataTask:didReceive:)方法。该方法可能被调用多次，每次调用提供上次调用后的数据，你的 app 负责将所需数据拼接起来。</p>
+<p>Data task 或 upload task 在接收完所有数据后会调用urlSession(_:dataTask:willCacheResponse:completionHandler:)方法，以决定是否将响应存储到缓存中。如果没有实现该方法，则根据会话的 configuration 决定是否保存。该方法的主要用途在于阻止指定 URL 缓存响应，或修改缓存的 userInfo 字典。实现该方法后必须调用 completionHandler，传入 proposed response 或修改后的 response 缓存数据，或nil禁止缓存 response。<br>只有在URLProtocol协议允许缓存 response 时，才会调用该方法。下面所有条件均成立时才会缓存响应：</p>
+<ul>
+<li>请求是 HTTP 或 HTTPS 类型，也可以是支持缓存的自定义网络协议。</li>
+<li>请求成功，即状态码在200至299区间。</li>
+<li>response 来自服务器，而非缓存。</li>
+<li>会话配置允许缓存。</li>
+<li>URLRequest缓存策略允许缓存。</li>
+<li>服务器响应中与缓存相关的 header 允许缓存。</li>
+<li>响应大小足够小，能够进行缓存。例如，如果提供磁盘缓存，则响应不得大于磁盘缓存大小的5%。</li>
+</ul>
+<h2 id="8-CompletionHandler-还是-delegat"><a href="#8-CompletionHandler-还是-delegat" class="headerlink" title="8 CompletionHandler 还是 delegat"></a>8 CompletionHandler 还是 delegat</h2><h3 id="8-1-如何选择"><a href="#8-1-如何选择" class="headerlink" title="8.1 如何选择"></a>8.1 如何选择</h3><p>前文说到的用于创建URLSeeion的类方法中，一个需要delegate，两个需要completionHandler。那么什么时候用delegate什么时候用completionHandler？</p>
+<p>以下情况需要提供completionHandler，其余情况可以交给delegate处理</p>
+<ul>
+<li>当App处于background、suspended以及out-of-process状态时，需要由background sessions上传或下载数据；</li>
+<li>自定义网络鉴权；</li>
+<li>自定义SSL验证；</li>
+<li>由服务器返回的MIME type决定一个网络传输是下载到磁盘还是直接display；</li>
+<li>通过body stream上传数据；</li>
+<li>自定义cache；</li>
+<li>自定义HTTP redirects；</li>
+</ul>
+<h3 id="8-2-区别"><a href="#8-2-区别" class="headerlink" title="8.2 区别"></a>8.2 区别</h3><p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/5.png" srcset="/img/loading.gif" lazyload alt="5"><br>完成处理程序需要处理以下三件事：</p>
+<ol>
+<li>验证 error 参数是否为 nil。如果不为 nil，则传输时发生错误。此时应处理错误并退出。</li>
+<li>检查响应的状态码（status code）是否指示成功，以及 MIME 类型是否为预期值。如果不符合，处理服务器错误并退出。</li>
+<li>根据需要使用返回的 data。</li>
+</ol>
+<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/6.png" srcset="/img/loading.gif" lazyload alt="6"></p>
+<h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9 总结"></a>9 总结</h2><p>使用NSURLSession加载数据流程：<br>0. 创建configuration</p>
+<ol>
+<li>创建session</li>
+<li>通过url和参数创建task</li>
+<li>调用resume开始task</li>
+<li>在handler、delegate中处理回调</li>
+</ol>
+<p>参考：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=zvfViYmETuc&t=8s">YouTube视频</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/pro648/tips/wiki/URLSession%e8%af%a6%e8%a7%a3">URLSession详解 · pro648&#x2F;tips Wiki</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.raywenderlich.com/3244963-urlsession-tutorial-getting-started">URLSession Tutorial: Getting Started</a></li>
+<li><a target="_blank" rel="noopener" href="http://zxfcumtcs.github.io/2014/08/02/NSUrlSession/">NSURLSession——网络框架新生代</a></li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/iOS-networking/">iOS networking</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/13/iOS%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">
+                        <span class="hidden-mobile">iOS文件系统</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
