@@ -23,20 +23,20 @@
 <meta property="og:site_name" content="Goggles&#39;s Zoom">
 <meta property="og:description" content="URL Loading System1 概述 URL 加载系统（URL Loading System）使用标准协议（如 https）或自定义协议提供对 URL 标识资源进行访问。URL Loading System 是异步执行的，这样 app 可以保持响应，并在 response 到达时处理数据或错误。使用URLSession实例创建一个或多个URLSessionTask实例，URLSession">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/%E5%B1%9E%E6%80%A7.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/task.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/2.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/delegate.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/4.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/5.png">
-<meta property="og:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/6.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/overview.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/%E5%B1%9E%E6%80%A7.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/task.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/2.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/delegate.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/4.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/5.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/URLSession/6.png">
 <meta property="article:published_time" content="2022-05-19T15:33:03.000Z">
-<meta property="article:modified_time" content="2022-05-19T15:33:28.412Z">
+<meta property="article:modified_time" content="2022-05-19T15:43:34.239Z">
 <meta property="article:author" content="goggles">
 <meta property="article:tag" content="iOS networking">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png">
+<meta name="twitter:image" content="https://catalyst1998.github.io/img/URLSession/overview.png">
   
   
   <title>NSURLSession详解 - Goggles&#39;s Zoom</title>
@@ -247,10 +247,10 @@
             <h1 style="display: none">NSURLSession详解</h1>
             
             <div class="markdown-body">
-              <h1 id="URL-Loading-System"><a href="#URL-Loading-System" class="headerlink" title="URL Loading System"></a>URL Loading System</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 概述</h2><p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/overview.png" srcset="/img/loading.gif" lazyload alt="overview"></p>
+              <h1 id="URL-Loading-System"><a href="#URL-Loading-System" class="headerlink" title="URL Loading System"></a>URL Loading System</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1 概述"></a>1 概述</h2><p><img src="/./../img/URLSession/overview.png" srcset="/img/loading.gif" lazyload alt="overview"></p>
 <p>URL 加载系统（URL Loading System）使用标准协议（如 https）或自定义协议提供对 URL 标识资源进行访问。URL Loading System 是异步执行的，这样 app 可以保持响应，并在 response 到达时处理数据或错误。<br>使用URLSession实例创建一个或多个URLSessionTask实例，URLSessionTask实例可以拉取数据并将数据返回到 app、下载文件，或将文件、数据上传到远程服务器。使用URLSessionConfiguration对象配置URLSession的实例 session（会话），URLSessionConfiguration对象可以配置 caches、cookies 策略，以及是否允许使用数据流量等。<br>可以使用一个 session 重复创建 task。例如，浏览器为正常浏览和无痕模式使用单独的 session，无痕浏览不会保存数据到磁盘。</p>
 <h2 id="2-URLSessionConfiguration"><a href="#2-URLSessionConfiguration" class="headerlink" title="2 URLSessionConfiguration"></a>2 URLSessionConfiguration</h2><p>URLSessionConfiguration相当于是管家，负责为seesion配置在网络交互过程中的各种属性。<br>URLSessionConfiguration 允许通过各种属性来设置configuration，包括setting cookie policies、setting security policies、setting caching policies、Setting HTTP Policy and Proxy Properties、Supporting Background Transfers等</p>
-<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/%E5%B1%9E%E6%80%A7.png" srcset="/img/loading.gif" lazyload alt="configuration属性"></p>
+<p><img src="/./../img/URLSession/%E5%B1%9E%E6%80%A7.png" srcset="/img/loading.gif" lazyload alt="configuration属性"></p>
 <p>从上图上可以看到常用的属性：<code>allowsCellularAccess</code>–是否允许访问蜂窝网, <code>HTTPMaximumConnectionsPerHost</code>–最大连接数, <code>requestCachePolicy</code>–cache策略等</p>
 <p>apple提供了三种类型的configuration</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs objective-c">@property (class, readonly, strong) NSURLSessionConfiguration *defaultSessionConfiguration;<br>@property (class, readonly, strong) NSURLSessionConfiguration *ephemeralSessionConfiguration;<br>+ (NSURLSessionConfiguration *)backgroundSessionConfigurationWithIdentifier:(NSString *)identifier API_AVAILABLE(macos(10.10), ios(8.0), watchos(2.0), tvos(9.0));<br></code></pre></td></tr></table></figure>
@@ -265,8 +265,9 @@
 </blockquote>
 <p>对于shared session和default其实比较相似，只不过default可以自定义一些参数。default，it uses the disk-persisted global cache,credential and cookie storage objects. Ephemeral, store all data in memory.<br>其中<code>backgroundSessionConfiguration:</code>的<code>identifier</code>参数在整个app中必须是唯一的，如果出现重复其后果是严重的！<br>通过该identifier，我们可以创建新的background session，用于获取与其绑定的download or upload response。</p>
 <h2 id="3-URLSessionTask"><a href="#3-URLSessionTask" class="headerlink" title="3 URLSessionTask"></a>3 URLSessionTask</h2><blockquote>
-<p>NSURLSessionTask - a cancelable object that refers to the lifetime of processing a given request.<br>URLSessionTask是真正干活的人，但他并没有初始方法，必须归属于seesion。<br>URLSessionTask是URL会话任务的抽象类，有四个具体的子类<br><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/task.png" srcset="/img/loading.gif" lazyload alt="3"></p>
+<p>NSURLSessionTask - a cancelable object that refers to the lifetime of processing a given request.</p>
 </blockquote>
+<p>URLSessionTask是真正干活的人，但他并没有初始方法，必须归属于seesion。<br>URLSessionTask是URL会话任务的抽象类，有四个具体的子类<br><img src="/./../img/URLSession/task.png" srcset="/img/loading.gif" lazyload alt="3"></p>
 <ul>
 <li><p><code>URLSessionDataTask</code>：Use this task for GET requests to retrieve data from servers to memory.<br>使用 <code>dataTask(with:)</code>方法创建<code>URLSessionDataTask</code>实例，datatask 用于请求资源(如：JSON、XML格式的数据），将服务器的响应作为一个或多个<code>NSData</code>对象返回到内存中。Default、ephemeral、shared session 支持<code>URLSessionDataTask</code>，<code>backgroundsession</code> 不支持<code>URLSessionDataTask</code>。</p>
 </li>
@@ -278,12 +279,13 @@
 </li>
 </ul>
 <p><em>NOTE，在创建完任务之后，需要调用resume 方法才会启动任务。在任务完成或失败前，session 会强引用 task。如果没有特别用途，不需要维护对任务的引用。</em></p>
-<h2 id="4-URLSession"><a href="#4-URLSession" class="headerlink" title="4 URLSession"></a>4 URLSession</h2><h3 id="4-1-URLSession-overview"><a href="#4-1-URLSession-overview" class="headerlink" title="4.1 URLSession overview"></a>4.1 URLSession overview</h3><p>URLSession is both a class and a suite of classes for handling HTTP- and HTTPS-based requests.<br>URLSession是整个体系中的领导。<br><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/2.png" srcset="/img/loading.gif" lazyload alt="2"></p>
+<h2 id="4-URLSession"><a href="#4-URLSession" class="headerlink" title="4 URLSession"></a>4 URLSession</h2><h3 id="4-1-URLSession-overview"><a href="#4-1-URLSession-overview" class="headerlink" title="4.1 URLSession overview"></a>4.1 URLSession overview</h3><p>URLSession is both a class and a suite of classes for handling HTTP- and HTTPS-based requests.<br>URLSession是整个体系中的领导。<br><img src="/./../img/URLSession/2.png" srcset="/img/loading.gif" lazyload alt="2"></p>
 <p><em>NOTE：一个session可以创建多个task，并且session中的所有的task共享configuration</em></p>
 <h3 id="4-2-Create-URLSession"><a href="#4-2-Create-URLSession" class="headerlink" title="4.2 Create URLSession"></a>4.2 Create URLSession</h3><p><a target="_blank" rel="noopener" href="https://developer.apple.com/documentation/foundation/nsurlsessionconfiguration?language=objc#topics">官方文档</a></p>
 <blockquote>
-<p>Configuration options for an NSURLSession.  When a session is created, a copy of the configuration object is made - you cannot modify the configuration of a session after it has been created.<br>可以通过单例sharedSession来使用session，也可以通过URLSessionConfiguration来创建configuration，配置session。</p>
+<p>Configuration options for an NSURLSession.  When a session is created, a copy of the configuration object is made - you cannot modify the configuration of a session after it has been created.</p>
 </blockquote>
+<p>可以通过单例sharedSession来使用session，也可以通过URLSessionConfiguration来创建configuration，配置session。</p>
 <p><strong>创建NSURLSession的三个类方法</strong></p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs obejctive-c">// 使用default configuration并且该session中的task必须提供completionHandler<br>+ (NSURLSession *)sharedSession;<br><br>// 该session中的task必须提供completionHandler<br>+ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration;<br><br>+ (NSURLSession *)sessionWithConfiguration:(NSURLSessionConfiguration *)configuration delegate:(id&lt;NSURLSessionDelegate&gt;)delegate delegateQueue:(NSOperationQueue *)queue;<br></code></pre></td></tr></table></figure>
 <ul>
@@ -296,7 +298,7 @@
 <h2 id="5-URLSessionDelegate"><a href="#5-URLSessionDelegate" class="headerlink" title="5 URLSessionDelegate"></a>5 URLSessionDelegate</h2><blockquote>
 <p>NSURLSessionDelegate specifies the methods that a session delegate may respond to.  There are both session specific messages (for example, connection based auth) as well as task based messages.</p>
 </blockquote>
-<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/delegate.png" srcset="/img/loading.gif" lazyload alt="3"></p>
+<p><img src="/./../img/URLSession/delegate.png" srcset="/img/loading.gif" lazyload alt="3"></p>
 <p>URLSessionDelegate定义了URLSession实例调用delegate处理session事件的方法。除实现URLSessionDelegate协议内方法，大部分 delegate 还需要实现URLSessionTaskDelegate、URLSessionDataDelegate、URLSessionDownloadDelegate中的一个或多个协议，以便处理 task 级事件，<br>URLSessionDelegate 有三个optional方法</p>
 <ol>
 <li><code>- (void)URLSession: didBecomeInvalidWithError: </code>该方法通知session是否失效<blockquote>
@@ -306,15 +308,19 @@
 </ol>
 <p>如果通过调用finishTasksAndInvalidate()方法使会话无效，会话会在最后一个 task 完成或失败后调用该方法<br>如果通过调用invalidateAndCancel()方法使会话无效，会话立即调用该方法。</p>
 <blockquote>
-<p>If implemented, when a connection level authentication challenge has occurred, this delegate will be given the opportunity to provide authentication credentials to the underlying connection. Some types of authentication will apply to more than one request on a given connection to a server (SSL Server Trust challenges). If this delegate message is not implemented, the behavior will be to use the default handling, which may involve user interaction.<br>2.<code> - (void)URLSession: didReceiveChallenge: completionHandler:</code> 该方法主要是处理远程服务器的会话级身份验证请求。遇到以下两种情况时会调用该方法：</p>
+<p>If implemented, when a connection level authentication challenge has occurred, this delegate will be given the opportunity to provide authentication credentials to the underlying connection. Some types of authentication will apply to more than one request on a given connection to a server (SSL Server Trust challenges). If this delegate message is not implemented, the behavior will be to use the default handling, which may involve user interaction.</p>
 </blockquote>
+<p>2.<code> - (void)URLSession: didReceiveChallenge: completionHandler:</code> 该方法主要是处理远程服务器的会话级身份验证请求。遇到以下两种情况时会调用该方法：</p>
 <ol>
 <li>远程服务器请求客户端证书，或 Windows NT LAN Manager（NTLM）认证时会调用该方法以提供适当的凭据。</li>
 <li>当 session 与使用 SSL 或 TLS 的远程服务器首次建立连接时，使用该方法验证服务器的证书链。<br>如果未实现该方法，session 会调用URLSessionTaskDelegate协议中urlSession(_:task:didReceive:completionHandler:)方法，采用 task 级认证。</li>
 </ol>
 <blockquote>
-<p>If an application has received an application: handleEventsForBackgroundURLSession: completionHandler:  message, the session delegate will receive this message to indicate that all messages previously enqueued for this session have been delivered.  At this time it is safe to invoke the previously stored completion handler, or to begin any internal updates that will result in invoking the completion handler.<br>3. <code>- (void)URLSessionDidFinishEventsForBackgroundURLSession:</code></p>
+<p>If an application has received an application: handleEventsForBackgroundURLSession: completionHandler:  message, the session delegate will receive this message to indicate that all messages previously enqueued for this session have been delivered.  At this time it is safe to invoke the previously stored completion handler, or to begin any internal updates that will result in invoking the completion handler.</p>
 </blockquote>
+<ol start="3">
+<li><code>- (void)URLSessionDidFinishEventsForBackgroundURLSession:</code></li>
+</ol>
 <h2 id="6-URLSessionTaskDelegate"><a href="#6-URLSessionTaskDelegate" class="headerlink" title="6 URLSessionTaskDelegate"></a>6 URLSessionTaskDelegate</h2><p>URLSessionTaskDelegate协议定义了 URL Session 实例调用 delegate 处理 task 级事件的方法。URLSessionTaskDelegate继承自URLSessionDelegate。</p>
 <h3 id="6-1-处理task生命周期"><a href="#6-1-处理task生命周期" class="headerlink" title="6.1 处理task生命周期"></a>6.1 处理task生命周期</h3><p>当任务完成是会调用<code>- (void)URLSession: task: didCompleteWithError:</code>方法。如果发生错误，error参数会包含失败的原因。</p>
 <h3 id="6-2-处理重定向"><a href="#6-2-处理重定向" class="headerlink" title="6.2 处理重定向"></a>6.2 处理重定向</h3><p>当远程服务器请求http重定向时，会调用<code>- (void)URLSession:task:willPerformHTTPRedirection:newRequest: completionHandler:</code>方法。<br>在该方法内必须调用 completion handler。如果允许重定向，为 completion handler 传入 request 参数；如果需要修改重定向，传入修改后的 request 对象；如果禁止重定向，则参数传 nil，此时得到的 response 就是重定向。</p>
@@ -327,7 +333,7 @@
 <li><code>transactionMetrics</code>：数组内元素为任务执行期间每个 request-response 事务度量标准。元素类型为URLSessionTaskTransactionMetrics。</li>
 </ul>
 <p><code>URLSessionTaskTransactionMetrics</code>对象封装执行会话任务期间收集的性能指标。每个<code>URLSessionTaskTransactionMetrics</code>对象包含了一个 request 和 response 属性，对应于 task 的 request 和 response。其也包含时间指标（temporal metrics），以fetchStartDate开始，以responseEndDate结束，以及其他特性，例如：networkProtocolName和resourceFetchType</p>
-<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/4.png" srcset="/img/loading.gif" lazyload alt="4"></p>
+<p><img src="/./../img/URLSession/4.png" srcset="/img/loading.gif" lazyload alt="4"></p>
 <p>可以使用该方法查看请求各阶段所占用的时间，优化性能。</p>
 <h2 id="7-URLSessionDataDelegate"><a href="#7-URLSessionDataDelegate" class="headerlink" title="7 URLSessionDataDelegate"></a>7 URLSessionDataDelegate</h2><p><code>URLSessionDataDelegate</code>协议定义了 URL session 实例处理 data task、upload task 任务级事件方法。URLSessionDataDelegate继承自URLSessionTaskDelegate协议。</p>
 <p>Data task 接收到服务器的初始回复（header）时，会调用<code>- (void)URLSession: dataTask：didReceiveResponse:  completionHandler:</code>方法<br>只有在接收到 response header 后需要取消任务，或将任务转变为 download task 时才需要实现该方法。未实现该方法时，默认允许继续传输数据。<br>可以在completionHandler中传入URLSession.ResponseDisposition常量。</p>
@@ -358,13 +364,13 @@
 <li>自定义cache；</li>
 <li>自定义HTTP redirects；</li>
 </ul>
-<h3 id="8-2-区别"><a href="#8-2-区别" class="headerlink" title="8.2 区别"></a>8.2 区别</h3><p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/5.png" srcset="/img/loading.gif" lazyload alt="5"><br>完成处理程序需要处理以下三件事：</p>
+<h3 id="8-2-区别"><a href="#8-2-区别" class="headerlink" title="8.2 区别"></a>8.2 区别</h3><p><img src="/./../img/URLSession/5.png" srcset="/img/loading.gif" lazyload alt="5"><br>完成处理程序需要处理以下三件事：</p>
 <ol>
 <li>验证 error 参数是否为 nil。如果不为 nil，则传输时发生错误。此时应处理错误并退出。</li>
 <li>检查响应的状态码（status code）是否指示成功，以及 MIME 类型是否为预期值。如果不符合，处理服务器错误并退出。</li>
 <li>根据需要使用返回的 data。</li>
 </ol>
-<p><img src="https://github.com/catalyst1998/Notes/blob/main/sources/image/URLSession/6.png" srcset="/img/loading.gif" lazyload alt="6"></p>
+<p><img src="/./../img/URLSession/6.png" srcset="/img/loading.gif" lazyload alt="6"></p>
 <h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9 总结"></a>9 总结</h2><p>使用NSURLSession加载数据流程：<br>0. 创建configuration</p>
 <ol>
 <li>创建session</li>
