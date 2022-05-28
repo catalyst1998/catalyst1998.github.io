@@ -1,0 +1,615 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="goggles">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="目录：  多线程编程 GCD概述 为什么要用GCD GCD任务和队列   GCD使用 队列的创建&#x2F;获取 任务创建 API使用1 多线程编程线程是什么？    在我们之前写的代码中，代码是从上到下顺序执行。这些源代码经过编译器转换后变成cpu的命令列。这些指令cpu依次执行，尽管会出现很多跳转指令，但也是一个没有分叉的路线。 现在的计算机使用多个cpu核，尽管如此1个cpu核仍然执行一条无">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Grand Central Dispatch">
+<meta property="og:url" content="https://catalyst1998.github.io/2022/05/25/Grand-Central-Dispatch/index.html">
+<meta property="og:site_name" content="Goggles&#39;s Zoom">
+<meta property="og:description" content="目录：  多线程编程 GCD概述 为什么要用GCD GCD任务和队列   GCD使用 队列的创建&#x2F;获取 任务创建 API使用1 多线程编程线程是什么？    在我们之前写的代码中，代码是从上到下顺序执行。这些源代码经过编译器转换后变成cpu的命令列。这些指令cpu依次执行，尽管会出现很多跳转指令，但也是一个没有分叉的路线。 现在的计算机使用多个cpu核，尽管如此1个cpu核仍然执行一条无">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://catalyst1998.github.io/img/GCD/1.png">
+<meta property="article:published_time" content="2022-05-25T13:49:33.000Z">
+<meta property="article:modified_time" content="2022-05-28T03:21:11.387Z">
+<meta property="article:author" content="goggles">
+<meta property="article:tag" content="iOS 多线程">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://catalyst1998.github.io/img/GCD/1.png">
+  
+  
+  <title>Grand Central Dispatch - Goggles&#39;s Zoom</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"catalyst1998.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="Grand Central Dispatch">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-25 21:49" pubdate>
+        2022年5月25日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      13k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      113 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">Grand Central Dispatch</h1>
+            
+            <div class="markdown-body">
+              <p>目录：</p>
+<ol>
+<li>多线程编程</li>
+<li>GCD概述<ol>
+<li>为什么要用GCD</li>
+<li>GCD任务和队列</li>
+</ol>
+</li>
+<li>GCD使用<ol>
+<li>队列的创建&#x2F;获取</li>
+<li>任务创建</li>
+<li>API使用<h1 id="1-多线程编程"><a href="#1-多线程编程" class="headerlink" title="1 多线程编程"></a>1 多线程编程</h1>线程是什么？</li>
+</ol>
+</li>
+</ol>
+<p>在我们之前写的代码中，代码是从上到下顺序执行。这些源代码经过编译器转换后变成cpu的命令列。这些指令cpu依次执行，尽管会出现很多跳转指令，但也是一个没有分叉的路线。</p>
+<p>现在的计算机使用多个cpu核，尽管如此1个cpu核仍然执行一条无分叉的路线。OS X和iOS的核心XNU内核在发送操作系统事件是会切换执行路径，进行上下文切换。由于使用多线程的程序需要在多个线程之前反复的进行上下文切换，因此看起来好像一个cpu并行执行多个线程。如果是多核cpu那就不是看起来。这就是多线程编程</p>
+<blockquote>
+<p>补充知识：<br>CPU物理核的数量&#x3D;cpu数量*每个cpu的核心数<br>虚拟核：通过超线程技术，可以将一个物理核虚拟成两个虚拟核，如4核8线程<br>单核cpu和多核cpu：都只有一个cpu，只是cpu上的核心数不同。多核cpu是多个单核cpu的代替方案，减少了体积和功耗。<br>一个核心同时只能执行一个线程<br>但是多线程编程会引起许多问题，比如多个线程更新相同的资源会导致数据不一致即数据竞争、多个线程互相等待资源即死锁、使用太多线程会导致消耗大量内存等。因此在使用多线程编程的时候需要注意这些问题。</p>
+</blockquote>
+<p>在iOS中，应用程序启动时最先执行的线程是主线程（UI线程），主线程用来绘制用户界面、处理触摸事件等。主线程中有一个runloop的主循环，如果在主线程执行长时间的操作会使得主循环阻塞，从而使得不能更新ui界面等问题，所以要使用多线程编程来避免这些问题。<br><img src="/../img/GCD/1.png" srcset="/img/loading.gif" lazyload></p>
+<h1 id="2-GCD概述"><a href="#2-GCD概述" class="headerlink" title="2 GCD概述"></a>2 GCD概述</h1><h2 id="2-1-什么是GCD"><a href="#2-1-什么是GCD" class="headerlink" title="2.1 什么是GCD"></a>2.1 什么是GCD</h2><blockquote>
+<p>苹果官方对GCD的描述：Grand Central Dispatch (GCD)是异步执行任务的技术之一。一般将应用程序中记述的线程管理用的代码在系统级中实现。开发者只需要定义想执行的任务并追加到适当的Dispatch Queue中，GCD 就能生成必要的线程并计划执行任务。由于线程管理是作为系统的一部分来实现的，因此可统一管理，也可执行任务，这样就比以前的线程更有效率。</p>
+</blockquote>
+<p>下面这段代码介绍了GCD如何使用</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></div></td><td class="code"><pre><code class="hljs awk">dispatch_async(queue,^&#123;<br>    <span class="hljs-regexp">//</span>耗时操作<br>    <span class="hljs-regexp">//</span>如数据库访问、网络请求等<br><br>    <span class="hljs-regexp">//</span>长时间处理完成后，主线程使用该处理后的结构<br>    dispatch_async(dispatch_get_main_queue(),^&#123;<br>        <span class="hljs-regexp">//</span>只能在ui线程执行的操作<br>        <span class="hljs-regexp">//</span>如ui更新等<br>    &#125;);<br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<p><code>dispatch_async(queue,^&#123;</code> 这行代码表示让处理在后台线程执行<br><code>dispatch_async(dispatch_get_main_queue(),^&#123;</code> 这行代码表示让处理在主线程执行。</p>
+<p>GCD的优点：</p>
+<ul>
+<li>GCD可用于多核的并行运算</li>
+<li>GCD会自动利用更多的CPU内核（双核 四核）</li>
+<li>GCD会自动管理线程的生命周期，不需要程序员来管理线程</li>
+</ul>
+<h2 id="2-2-GCD任务和队列"><a href="#2-2-GCD任务和队列" class="headerlink" title="2.2 GCD任务和队列"></a>2.2 GCD任务和队列</h2><p>在学习GCD之前需要了解的两个概念：<strong>任务</strong> <strong>队列</strong></p>
+<ul>
+<li>任务：就是需要执行的操作，在GCD中就是放在Block中的代码。执行任务有两种类型：同步执行和异步执行。两者的区别在于：是否等待队列的任务执行结束，以及是否具有开启新线程的能力<ul>
+<li>同步执行sync：同步添加任务到指定的queue中，在任务执行结束之前，会一直等待，直到队列里的任务完成之后才会继续执行。只能在当前线程执行任务，不具备开启新线程的能力。</li>
+<li>异步执行async：异步添加任务到指定的queue中，不需要等待就可以继续执行任务。可以在新线程中执行任务，具有开启新线程的能力</li>
+<li><em>NOTE：async具有开启新线程的能力，但不一定会开启新线程，这与指定队列类型有关</em></li>
+</ul>
+</li>
+<li>队列Dispatch Queue：队列指的是用来存放任务的队列。采取FIFO的原则</li>
+</ul>
+<p>在GCD中队列分为两种，串行队列和并发队列</p>
+<ul>
+<li>串行队列：等待现在执行处理结束的<code>serial dispatch queue</code></li>
+<li>不等待现在执行处理结束的<code>concurrent dispatch queue</code><br><em>NOTE：并发队列只有在异步的条件下才有效</em></li>
+</ul>
+<h1 id="3-GCD的使用"><a href="#3-GCD的使用" class="headerlink" title="3 GCD的使用"></a>3 GCD的使用</h1><h2 id="3-1-GCD的使用步骤"><a href="#3-1-GCD的使用步骤" class="headerlink" title="3.1 GCD的使用步骤"></a>3.1 GCD的使用步骤</h2><ol>
+<li>创建队列（串行队列或者并发队列）</li>
+<li>将任务追加到队列中，系统会根据任务类型执行任务</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-built_in">dispatch_queue_t</span> mytest = dispatch_queue_create(<span class="hljs-string">&quot;mytestqueue&quot;</span>, <span class="hljs-literal">nil</span>);<br><span class="hljs-built_in">dispatch_async</span>(mytest, ^&#123;<br>        <span class="hljs-comment">//todo</span><br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;block &quot;</span>);<br>    &#125;);<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-2-队列的创建-x2F-获取"><a href="#3-2-队列的创建-x2F-获取" class="headerlink" title="3.2 队列的创建&#x2F;获取"></a>3.2 队列的创建&#x2F;获取</h2><p><em>创建队列</em><br>使用<code>dispatch_queue_create</code>方法来创建队列，需要传入两个参数：</p>
+<ol>
+<li>第一个参数表示队列的唯一标识符，用于debug，可为空（不建议为空）</li>
+<li>第二个参数时用来识别是串行队列<code>DISPATCH_QUEUE_SERIAL</code>还是并发队列<code>DISPATCH_QUEUE_CONCURRENT</code>、</li>
+</ol>
+<figure class="highlight ebnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ebnf"><span class="hljs-attribute">dispatch_queue_t mytest</span> = dispatch_queue_create(<span class="hljs-string">&quot;mytestqueue&quot;</span>, DISPATCH_QUEUE_CONCURRENT);<br></code></pre></td></tr></table></figure>
+<p>注意注意的是在创建serial dispatch queue时，每个queue同时只能执行一个处理，但是可以通过<code>dispatch_queue_create</code>创建多个queue。每个queue就会开启一个线程，这就引起上文说到的问题，开太多线程会导致内存被大量消耗，从而影响性能。</p>
+<p>当多个线程更新相同资源会导致数据竞争时使用serial dispatch queue可以避免。</p>
+<p><em>获取队列</em></p>
+<ul>
+<li>对于串行队列，GCD默认使用主队列mian dispatch queue来执行任务，可以使用<code>dispatch_get_main_queue</code>来获取主队列。<figure class="highlight abnf"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs abnf">dispatch_queue_t queue <span class="hljs-operator">=</span> dispatch_get_main_queue()<span class="hljs-comment">;</span><br></code></pre></td></tr></table></figure></li>
+<li>对于并发队列，GCD默认使用全局并发队列global dispatch queue，可以使用<code>dispatch_get_global_queue</code>来获取全局并发队列，需要传入两个参数：</li>
+</ul>
+<ol>
+<li>第一个参数表示队列属性，可以选择队列优先级或者Qos，一般使用<code>DISPATCH_QUEUE_PRIORITY_DEFAULT</code></li>
+<li>第二个参数暂时不用，填0即可<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs diff">dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT，0);<br><br>/*<br>//队列Qos：<br><span class="hljs-deletion">- QOS_CLASS_USER_INTERACTIVE</span><br><span class="hljs-deletion">- QOS_CLASS_USER_INITIATED</span><br><span class="hljs-deletion">- QOS_CLASS_DEFAULT</span><br><span class="hljs-deletion">- QOS_CLASS_UTILITY</span><br><span class="hljs-deletion">- QOS_CLASS_BACKGROUND</span><br>//队列优先级（对应的Qos）：<br><span class="hljs-deletion">- DISPATCH_QUEUE_PRIORITY_HIGH:         QOS_CLASS_USER_INITIATED</span><br><span class="hljs-deletion">- DISPATCH_QUEUE_PRIORITY_DEFAULT:      QOS_CLASS_DEFAULT</span><br><span class="hljs-deletion">- DISPATCH_QUEUE_PRIORITY_LOW:          QOS_CLASS_UTILITY</span><br><span class="hljs-deletion">- DISPATCH_QUEUE_PRIORITY_BACKGROUND:   QOS_CLASS_BACKGROUND</span><br>*/<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="3-3-任务的创建"><a href="#3-3-任务的创建" class="headerlink" title="3.3 任务的创建"></a>3.3 任务的创建</h2><p>GCD提供了创建同步任务和异步任务的函数：</p>
+<ul>
+<li>同步执行任务：<br><code>dispatch_sync</code></li>
+<li>异步执行任务：<br> <code>dispatch_async</code></li>
+</ul>
+<figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs arduino"><span class="hljs-built_in">dispatch_sync</span>(queue,^&#123;<br>    <span class="hljs-comment">//同步执行方法</span><br>&#125;);<br><br><span class="hljs-built_in">dispatch_async</span>(queue,^&#123;<br>    <span class="hljs-comment">//异步执行方法</span><br>&#125;);<br></code></pre></td></tr></table></figure>
+
+<h2 id="3-4-任务和队列的不同组合"><a href="#3-4-任务和队列的不同组合" class="headerlink" title="3.4 任务和队列的不同组合"></a>3.4 任务和队列的不同组合</h2><table>
+<thead>
+<tr>
+<th>任务</th>
+<th>并发队列</th>
+<th>串行队列</th>
+<th>主队列</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同步sync</td>
+<td>只开了主线程，依然是串行执行任务</td>
+<td>只开了主线程，依然是串行执行任务</td>
+<td>死锁 卡住</td>
+</tr>
+<tr>
+<td>异步async</td>
+<td>开启新的线程，并发执行任务</td>
+<td>开启了一个新的线程，串行执行任务</td>
+<td>没有开启新线程，串行执行任务</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注意：从上边可看出： 『主线程』 中调用 『主队列』+『同步执行』 会导致死锁问题。这是因为 主队列中追加的同步任务 和 主线程本身的任务 两者之间相互等待，阻塞了 『主队列』，最终造成了主队列所在的线程（主线程）死锁问题。而如果我们在 『其他线程』 调用 『主队列』+『同步执行』，则不会阻塞 『主队列』，自然也不会造成死锁问题。最终的结果是：不会开启新线程，串行执行任务。</p>
+</blockquote>
+<h1 id="4-GCD的组合使用"><a href="#4-GCD的组合使用" class="headerlink" title="4 GCD的组合使用"></a>4 GCD的组合使用</h1><h2 id="4-1-同步执行-并发队列"><a href="#4-1-同步执行-并发队列" class="headerlink" title="4.1 同步执行+并发队列"></a>4.1 同步执行+并发队列</h2><p>在这种情况下，不会开启新的线程，顺序执行任务</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 同步执行并发队列</span><br>- (<span class="hljs-type">void</span>)syncConcurrent&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncConcurrent--begin&quot;</span>);<br>    <br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="hljs-string">&quot;testQueue&quot;</span>, DISPATCH_QUEUE_CONCURRENT);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncConcurrent---end&quot;</span>);<br>       <br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">49</span>.<span class="hljs-number">826628</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] currentThread----&lt;_NSMainThread: <span class="hljs-number">0</span>x6000005f0800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">49</span>.<span class="hljs-number">826680</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] syncConcurrent--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">51</span>.<span class="hljs-number">827838</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] <span class="hljs-number">1</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x6000005f0800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">53</span>.<span class="hljs-number">829130</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] <span class="hljs-number">2</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x6000005f0800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">55</span>.<span class="hljs-number">829934</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] <span class="hljs-number">3</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x6000005f0800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">26</span>:<span class="hljs-number">55</span>.<span class="hljs-number">830279</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">99522</span>:<span class="hljs-number">735441</span>] syncConcurrent---end<br><br></code></pre></td></tr></table></figure>
+<p>从输出结果可以看出：</p>
+<ol>
+<li>同步执行+并发队列，所有的任务都在主线程执行，并没有开启新的线程，这是因为sync没有开启新线程的能力。</li>
+<li>所有的任务都是按FIFO顺序执行，这是因为虽然并发队列可以并发执行任务，但是由于本身无法创建多个线程，因此不能并发，只能顺序执行。</li>
+<li>所有任务都在打印的 syncConcurrent—begin 和 syncConcurrent—end 之间执行（同步任务 需要等待队列的任务执行结束）。</li>
+</ol>
+<h2 id="4-2-异步执行-并发队列"><a href="#4-2-异步执行-并发队列" class="headerlink" title="4.2 异步执行+并发队列"></a>4.2 异步执行+并发队列</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 异步并发</span><br>- (<span class="hljs-type">void</span>)asyncConcurrent&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread===%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncConcurrent--begin&quot;</span>);<br>    <br>    <span class="hljs-comment">//创建并发队列</span><br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="hljs-string">&quot;testQueue&quot;</span>, DISPATCH_QUEUE_CONCURRENT);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;1----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;2----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncConcurrent---end&quot;</span>);<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">41</span>.<span class="hljs-number">608717</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749657</span>] currentThread===&lt;_NSMainThread: <span class="hljs-number">0</span>x60000398c880&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">41</span>.<span class="hljs-number">608764</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749657</span>] asyncConcurrent--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">41</span>.<span class="hljs-number">608803</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749657</span>] asyncConcurrent---end<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">43</span>.<span class="hljs-number">611552</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749843</span>] <span class="hljs-number">3</span>----&lt;NSThread: <span class="hljs-number">0</span>x6000039dc0c0&gt;&#123;number = <span class="hljs-number">7</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">43</span>.<span class="hljs-number">613877</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749839</span>] <span class="hljs-number">1</span>----&lt;NSThread: <span class="hljs-number">0</span>x6000039c2d80&gt;&#123;number = <span class="hljs-number">6</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">40</span>:<span class="hljs-number">43</span>.<span class="hljs-number">613880</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">1422</span>:<span class="hljs-number">749844</span>] <span class="hljs-number">2</span>----&lt;NSThread: <span class="hljs-number">0</span>x600003993180&gt;&#123;number = <span class="hljs-number">5</span>, name = (null)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从输出结果中可以看出：</p>
+<ol>
+<li>除了当前的主线程之外，系统又开启了三个线程，这是因为异步执行具有开启新线程的能力。</li>
+<li>任务是同时执行的，这是因为并发队列可以开启多个线程，同时执行多个任务</li>
+<li>所有任务是在打印的 syncConcurrent—begin 和 syncConcurrent—end 之后才执行的。说明当前线程没有等待，而是直接开启了新线程，在新线程中执行任务（异步执行不做等待，可以继续执行任务）。</li>
+</ol>
+<h2 id="4-3-同步执行-串行队列"><a href="#4-3-同步执行-串行队列" class="headerlink" title="4.3 同步执行+串行队列"></a>4.3 同步执行+串行队列</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 同步串行</span><br>- (<span class="hljs-type">void</span>)syncSerial&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread===%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncSerial--begin&quot;</span>);<br>    <br>    <span class="hljs-comment">//创建并发队列</span><br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="hljs-string">&quot;testQueue&quot;</span>, DISPATCH_QUEUE_SERIAL);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;1----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;2----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncSerial---end&quot;</span>);<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">02</span>.<span class="hljs-number">404274</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] currentThread===&lt;_NSMainThread: <span class="hljs-number">0</span>x60000102c880&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">02</span>.<span class="hljs-number">404317</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] syncSerial--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">04</span>.<span class="hljs-number">405534</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] <span class="hljs-number">1</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x60000102c880&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">06</span>.<span class="hljs-number">407035</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] <span class="hljs-number">2</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x60000102c880&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">08</span>.<span class="hljs-number">408848</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] <span class="hljs-number">3</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x60000102c880&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">50</span>:<span class="hljs-number">08</span>.<span class="hljs-number">409269</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2384</span>:<span class="hljs-number">758988</span>] syncSerial---end<br></code></pre></td></tr></table></figure>
+<p>从输出结果可以看出：</p>
+<ol>
+<li>所有的任务都在主线程执行，并没有开启新的线程，这是因为sync没有开启新线程的能力。</li>
+<li>所有的任务都是按FIFO顺序执行，这是因为串行队列每次只能执行一个任务。</li>
+<li>所有任务都在打印的 syncConcurrent—begin 和 syncConcurrent—end 之间执行（同步任务需要等待队列的任务执行结束）。</li>
+</ol>
+<h2 id="4-4-异步执行-串行队列"><a href="#4-4-异步执行-串行队列" class="headerlink" title="4.4 异步执行+串行队列"></a>4.4 异步执行+串行队列</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 异步串行</span><br>- (<span class="hljs-type">void</span>)asyncSerial&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread===%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncSerial--begin&quot;</span>);<br>    <br>    <span class="hljs-comment">//创建并发队列</span><br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_queue_create(<span class="hljs-string">&quot;testQueue&quot;</span>, DISPATCH_QUEUE_SERIAL);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;1----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;2----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncSerial---end&quot;</span>);<br><br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">38</span>.<span class="hljs-number">112599</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764125</span>] currentThread===&lt;_NSMainThread: <span class="hljs-number">0</span>x600000b6c540&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">38</span>.<span class="hljs-number">112651</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764125</span>] asyncSerial--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">38</span>.<span class="hljs-number">112698</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764125</span>] asyncSerial---end<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">40</span>.<span class="hljs-number">117996</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764325</span>] <span class="hljs-number">1</span>----&lt;NSThread: <span class="hljs-number">0</span>x600000b79680&gt;&#123;number = <span class="hljs-number">7</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">42</span>.<span class="hljs-number">119236</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764325</span>] <span class="hljs-number">2</span>----&lt;NSThread: <span class="hljs-number">0</span>x600000b79680&gt;&#123;number = <span class="hljs-number">7</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">10</span>:<span class="hljs-number">54</span>:<span class="hljs-number">44</span>.<span class="hljs-number">120922</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">2889</span>:<span class="hljs-number">764325</span>] <span class="hljs-number">3</span>----&lt;NSThread: <span class="hljs-number">0</span>x600000b79680&gt;&#123;number = <span class="hljs-number">7</span>, name = (null)&#125; <br></code></pre></td></tr></table></figure>
+
+<p>从输出结果可以看出：</p>
+<ol>
+<li>开启了一个新的线程，这是因为async具有开启新线程的能力，但是穿行队列只能开启一个线程</li>
+<li>所有任务是在打印的 syncConcurrent—begin 和 syncConcurrent—end 之后才开始执行的（异步执行 不会做任何等待，可以继续执行任务）。</li>
+<li>任务是按顺序执行的</li>
+</ol>
+<h2 id="4-5-同步执行-主队列"><a href="#4-5-同步执行-主队列" class="headerlink" title="4.5 同步执行+主队列"></a>4.5 同步执行+主队列</h2><ul>
+<li>主队列：GCD默认提供的是串行队列</li>
+</ul>
+<h3 id="4-5-1-主线程中执行-同步执行-主队列"><a href="#4-5-1-主线程中执行-同步执行-主队列" class="headerlink" title="4.5.1 主线程中执行[同步执行+主队列]"></a>4.5.1 主线程中执行[同步执行+主队列]</h3><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 同步主队列</span><br>- (<span class="hljs-type">void</span>)syncMain&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread===%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncMain--begin&quot;</span>);<br>    <br>    <span class="hljs-comment">//获取主队列</span><br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_get_main_queue();<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;1----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;2----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_sync</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;syncMain---end&quot;</span>);<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">01</span>:<span class="hljs-number">06</span>.<span class="hljs-number">744031</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">3593</span>:<span class="hljs-number">771124</span>] currentThread===&lt;_NSMainThread: <span class="hljs-number">0</span>x6000027bc7c0&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">01</span>:<span class="hljs-number">06</span>.<span class="hljs-number">744074</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">3593</span>:<span class="hljs-number">771124</span>] syncMain--begin<br></code></pre></td></tr></table></figure>
+
+<p>从输出结果上可以看出有许多不同的地方：<br>追加到主队列的任务1、任务2、任务3都不能执行，并且syncMain—end也没有打印。这是因为主线在执行syncMain方法的时候会把任务添加到主线程的队列中，而同步执行会等待当前队列中的任务执行完毕才会继续执行。因此当任务1追加到主队列中，主队列又在等在syncMain执行；而syncMain需要执行完任务1才能继续执行，因此陷入了死锁。</p>
+<h3 id="4-5-2-其他线程执行-同步执行-主队列"><a href="#4-5-2-其他线程执行-同步执行-主队列" class="headerlink" title="4.5.2 其他线程执行+[同步执行+主队列]"></a>4.5.2 其他线程执行+[同步执行+主队列]</h3><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs objectivec">[<span class="hljs-built_in">NSThread</span> detachNewThreadSelector:<span class="hljs-keyword">@selector</span>(syncMain) toTarget:<span class="hljs-keyword">self</span> withObject:<span class="hljs-literal">nil</span>];<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">23</span>.<span class="hljs-number">863195</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779754</span>] currentThread===&lt;NSThread: <span class="hljs-number">0</span>x60000131d400&gt;&#123;number = <span class="hljs-number">5</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">23</span>.<span class="hljs-number">863245</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779754</span>] syncMain--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">25</span>.<span class="hljs-number">872996</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779552</span>] <span class="hljs-number">1</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600001344800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">27</span>.<span class="hljs-number">877613</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779552</span>] <span class="hljs-number">2</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600001344800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">29</span>.<span class="hljs-number">879781</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779552</span>] <span class="hljs-number">3</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600001344800&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">10</span>:<span class="hljs-number">29</span>.<span class="hljs-number">880257</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">4526</span>:<span class="hljs-number">779754</span>] syncMain---end<br></code></pre></td></tr></table></figure>
+
+<p>在其他线程执行[同步执行+主队列],从输出结果中可以看出：</p>
+<ol>
+<li>所有任务都在主线程执行，而不是在当前线程。</li>
+<li>所有任务都在打印的 syncConcurrent—begin 和 syncConcurrent—end 之间执行（同步任务 需要等待队列的任务执行结束）。</li>
+<li>任务是按顺序执行的（主队列是 串行队列，每次只有一个任务被执行，任务一个接一个按顺序执行）。</li>
+<li>之所以这种情况不会死锁是因为，syncMain在线程1，而任务1、2、3放在主线程中。syncMain将任务1追加到主队列中，主队列没有在执行的任务，任务1开始执行，执行完毕后依次执行任务2、3，当任务3执行完毕，syncMain也执行完了,因此不会死锁。</li>
+</ol>
+<h2 id="4-6-异步执行-主队列"><a href="#4-6-异步执行-主队列" class="headerlink" title="4.6 异步执行+主队列"></a>4.6 异步执行+主队列</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">/// 异步执行+主队列</span><br>- (<span class="hljs-type">void</span>)asyncMain&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;currentThread===%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncMain--begin&quot;</span>);<br>    <br>    <span class="hljs-comment">//获取主队列</span><br>    <span class="hljs-built_in">dispatch_queue_t</span> queue = dispatch_get_main_queue();<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;1----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;2----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">dispatch_async</span>(queue, ^&#123;<br>        <span class="hljs-comment">//模拟耗时操作</span><br>        [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>        <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;3----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    &#125;);<br>    <br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;asyncMain---end&quot;</span>);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">28</span>.<span class="hljs-number">327650</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] currentThread===&lt;_NSMainThread: <span class="hljs-number">0</span>x600003f300c0&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">28</span>.<span class="hljs-number">327697</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] asyncMain--begin<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">28</span>.<span class="hljs-number">327739</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] asyncMain---end<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">30</span>.<span class="hljs-number">337717</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] <span class="hljs-number">1</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600003f300c0&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">32</span>.<span class="hljs-number">338226</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] <span class="hljs-number">2</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600003f300c0&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">28</span> <span class="hljs-number">11</span>:<span class="hljs-number">17</span>:<span class="hljs-number">34</span>.<span class="hljs-number">339835</span>+<span class="hljs-number">0800</span> DemoForGCD[<span class="hljs-number">5255</span>:<span class="hljs-number">786677</span>] <span class="hljs-number">3</span>----&lt;_NSMainThread: <span class="hljs-number">0</span>x600003f300c0&gt;&#123;number = <span class="hljs-number">1</span>, name = main&#125;<br></code></pre></td></tr></table></figure>
+
+<p>从输出结果可以看出：</p>
+<ol>
+<li>所有任务都在主线程执行，没有开启新的线程，虽然异步执行具有开启新线程的能力，但是主队列在主线程执行</li>
+<li>所有任务都在打印的 syncConcurrent—begin 和 syncConcurrent—end 之后执行（异步任务不需要等待，可以继续执行任务）。</li>
+<li>任务是按顺序执行的（主队列是 串行队列，每次只有一个任务被执行，任务一个接一个按顺序执行）。</li>
+</ol>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B/">iOS 多线程</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/25/iOS%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+                        <span class="hidden-mobile">iOS内存管理之ARC</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>

@@ -1,0 +1,473 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="goggles">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="OverviewAFNetworking是对iOS中⽹络请求⽅式NSURLSession的封装。  Blog:NSURLSession详解  AFNetworking框架结构 本文以4.0版本为例  AFNetworking框架主要分为五个模块：分别由NSURLSession,Security,Reachability,Serialization,UIKit五部分组成  NSURLSession：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AFNetworking源码解析（一）">
+<meta property="og:url" content="https://catalyst1998.github.io/2022/05/19/AFNetworking%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Goggles&#39;s Zoom">
+<meta property="og:description" content="OverviewAFNetworking是对iOS中⽹络请求⽅式NSURLSession的封装。  Blog:NSURLSession详解  AFNetworking框架结构 本文以4.0版本为例  AFNetworking框架主要分为五个模块：分别由NSURLSession,Security,Reachability,Serialization,UIKit五部分组成  NSURLSession：">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-19T15:46:53.000Z">
+<meta property="article:modified_time" content="2022-05-20T06:55:53.994Z">
+<meta property="article:author" content="goggles">
+<meta property="article:tag" content="iOS networking 源码解析">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  <title>AFNetworking源码解析（一） - Goggles&#39;s Zoom</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"catalyst1998.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="AFNetworking源码解析（一）">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-19 23:46" pubdate>
+        2022年5月19日 晚上
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      17k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      140 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">AFNetworking源码解析（一）</h1>
+            
+            <div class="markdown-body">
+              <h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>AFNetworking是对iOS中⽹络请求⽅式NSURLSession的封装。</p>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://goggles-zoom.vercel.app/2022/05/19/NSURLSession%E8%AF%A6%E8%A7%A3/">Blog:NSURLSession详解</a></p>
+</blockquote>
+<h2 id="AFNetworking框架结构"><a href="#AFNetworking框架结构" class="headerlink" title="AFNetworking框架结构"></a>AFNetworking框架结构</h2><blockquote>
+<p>本文以4.0版本为例</p>
+</blockquote>
+<p>AFNetworking框架主要分为五个模块：分别由NSURLSession,Security,Reachability,Serialization,UIKit五部分组成</p>
+<ol>
+<li>NSURLSession：⽹络通信模块，对应着AFNetworking中的<code>AFURLSessionManager</code>和对HTTP协议进行特化处理的<code>AFHTTPSessionManager</code>，其中<code>AFHTTPSessionManager</code>继承自<code>AFURLSessionManager</code>。</li>
+<li>Reachability： ⽹络状态监听模块，对应着AFNetworking中的<code>AFNetworkReachabilityManager</code></li>
+<li>Security： ⽹络通讯安全策略模块，对应着AFNetworking中的AFSecurityPolicy</li>
+<li>Serialization：信息序列化模块，对应着AFNetworking中的<code>AFURLResponseSerialization</code>和<code>AFURLRequestSerialization</code></li>
+<li>UIKit：是UIKit的扩展库</li>
+</ol>
+<h1 id="AFURLSessionManager分析"><a href="#AFURLSessionManager分析" class="headerlink" title="AFURLSessionManager分析"></a>AFURLSessionManager分析</h1><p>因为AFURLSessionManager是对NSURLSession的封装，因此回顾一下，NSURLSession的流程：</p>
+<ol>
+<li>创建NSURLSessionConfiguration对象，配置session的各种属性</li>
+<li>利用configuration创建session，这里有三个类方法可以实现</li>
+<li>根据需求选择task的类型，用session创建task</li>
+<li>resume task</li>
+<li>用delegate方法或completion block 响应网络事件及数据<br>每次网络会话（可以简单理解为一个网页）对应一个session对象，每个session对象可以创建多个task来完成交互。</li>
+</ol>
+<h2 id="AFURLSessionManager属性"><a href="#AFURLSessionManager属性" class="headerlink" title="AFURLSessionManager属性"></a>AFURLSessionManager属性</h2><p>通过查看AFURLSessionManager.h头文件，可以看到主要的属性</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></div></td><td class="code"><pre><code class="hljs Objective-C">//AFURLSessionManager类实现了许多NSURLSession相关的delegate协议，用于处理数据<br>@interface AFURLSessionManager : NSObject &lt;NSURLSessionDelegate, NSURLSessionTaskDelegate, NSURLSessionDataDelegate, NSURLSessionDownloadDelegate, NSSecureCoding, NSCopying&gt;<br>/**<br> The managed session. 管理的session对象，AFN发起的网络请求都是该session去创建task实例<br> */<br>@property (readonly, nonatomic, strong) NSURLSession *session;<br><br>/**<br> The operation queue on which delegate callbacks are run. delegate回调的操作队列<br> */<br>@property (readonly, nonatomic, strong) NSOperationQueue *operationQueue;<br><br>/**<br> Responses sent from the server in data tasks created with `dataTaskWithRequest:success:failure:` and run using the `GET` / `POST` / et al. convenience methods are automatically validated and serialized by the response serializer. By default, this property is set to an instance of `AFJSONResponseSerializer`.<br><br> @warning `responseSerializer` must not be `nil`.<br> 解析网络返回数据的对象<br> */<br>@property (nonatomic, strong) id &lt;AFURLResponseSerialization&gt; responseSerializer;<br><br>///-------------------------------<br>/// @name Managing Security Policy<br>///-------------------------------<br><br>/**<br> The security policy used by created session to evaluate server trust for secure connections. `AFURLSessionManager` uses the `defaultPolicy` unless otherwise specified.<br> 用于处理网络连接安全处理策略的AFSecurityPolicy对象<br> */<br>@property (nonatomic, strong) AFSecurityPolicy *securityPolicy;<br><br>#if !TARGET_OS_WATCH<br>///--------------------------------------<br>/// @name Monitoring Network Reachability<br>///--------------------------------------<br>/**<br> The network reachability manager. `AFURLSessionManager` uses the `sharedManager` by default.<br> 用于检测网络数据的AFNetworkReachabilityManager对象<br> */<br>@property (readwrite, nonatomic, strong) AFNetworkReachabilityManager *reachabilityManager;<br>#endif<br><br>///----------------------------<br>/// @name Getting Session Tasks<br>///----------------------------<br><br>/**<br> The data, upload, and download tasks currently run by the managed session.<br> session管理的所有task的集合<br> */<br>@property (readonly, nonatomic, strong) NSArray &lt;NSURLSessionTask *&gt; *tasks;<br><br>/**<br> The data tasks currently run by the managed session.<br> session管理的data task的集合<br> */<br>@property (readonly, nonatomic, strong) NSArray &lt;NSURLSessionDataTask *&gt; *dataTasks;<br><br>/**<br> The upload tasks currently run by the managed session.<br> session管理的upload task的集合<br> */<br>@property (readonly, nonatomic, strong) NSArray &lt;NSURLSessionUploadTask *&gt; *uploadTasks;<br><br>/**<br> The download tasks currently run by the managed session.<br> session管理的download task的集合<br> */<br>@property (readonly, nonatomic, strong) NSArray &lt;NSURLSessionDownloadTask *&gt; *downloadTasks;<br><br>///-------------------------------<br>/// @name Managing Callback Queues<br>///-------------------------------<br><br>/**<br> The dispatch queue for `completionBlock`. If `NULL` (default), the main queue is used.<br> 完成为例请求后执行的回调块的队列，如果是nil就使用主队列<br> */<br>@property (nonatomic, strong, nullable) dispatch_queue_t completionQueue;<br><br>/**<br> The dispatch group for `completionBlock`. If `NULL` (default), a private dispatch group is used.<br> */<br>@property (nonatomic, strong, nullable) dispatch_group_t completionGroup;<br><br></code></pre></td></tr></table></figure>
+
+<h2 id="AFURLSessionManager的方法"><a href="#AFURLSessionManager的方法" class="headerlink" title="AFURLSessionManager的方法"></a>AFURLSessionManager的方法</h2><figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">//指定初始化方法，根据传入的configuration创建session实例</span><br>- (<span class="hljs-keyword">instancetype</span>)initWithSessionConfiguration:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURLSessionConfiguration</span> *)configuration <span class="hljs-built_in">NS_DESIGNATED_INITIALIZER</span>;<br><br> <span class="hljs-comment">//设置session无效，cancelPendingTasks：是否取消seesion中正在执行的任务；resetSession：是否重置session</span><br> <span class="hljs-comment">//具体实现中还是调用了NSURLSession的`invalidateAndCancel` `finishTasksAndInvalidat`方法</span><br>- (<span class="hljs-type">void</span>)invalidateSessionCancelingTasks:(<span class="hljs-type">BOOL</span>)cancelPendingTasks resetSession:(<span class="hljs-type">BOOL</span>)resetSession;<br><br> <span class="hljs-comment">/**</span><br><span class="hljs-comment">  根据具体的request创建一个`NSURLSessionDataTask`对象，需要注意的是，uploadProgressBlock 和 downloadProgressBlock 是在session queue被调用不是在main queue</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-built_in">NSURLSessionDataTask</span> *)dataTaskWithRequest:(<span class="hljs-built_in">NSURLRequest</span> *)request<br>                               uploadProgress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *uploadProgress))uploadProgressBlock<br>                             downloadProgress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *downloadProgress))downloadProgressBlock<br>                            completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-type">id</span> _Nullable responseObject,  <span class="hljs-built_in">NSError</span> * _Nullable error))completionHandler;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> 根据具体的request创建一个`NSURLSessionUploadTask`对象，fileURL：本地需要上传文件的url</span><br><span class="hljs-comment">*/</span><br>- (<span class="hljs-built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="hljs-built_in">NSURLRequest</span> *)request<br>                                         fromFile:(<span class="hljs-built_in">NSURL</span> *)fileURL<br>                                         progress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *uploadProgress))uploadProgressBlock<br>                                completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-type">id</span> _Nullable responseObject, <span class="hljs-built_in">NSError</span>  * _Nullable error))completionHandler;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> 根据指定的request和body创建`NSURLSessionUploadTask`</span><br><span class="hljs-comment"> bodyData：需要上传到http body的data</span><br><span class="hljs-comment">*/</span><br>- (<span class="hljs-built_in">NSURLSessionUploadTask</span> *)uploadTaskWithRequest:(<span class="hljs-built_in">NSURLRequest</span> *)request<br>                                         fromData:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSData</span> *)bodyData<br>                                         progress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *uploadProgress))uploadProgressBlock<br>                                completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-type">id</span> _Nullable responseObject, <span class="hljs-built_in">NSError</span> * _Nullable error))completionHandler;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> 根据指定的stream request创建`NSURLSessionUploadTask`</span><br><span class="hljs-comment">*/</span><br>- (<span class="hljs-built_in">NSURLSessionUploadTask</span> *)uploadTaskWithStreamedRequest:(<span class="hljs-built_in">NSURLRequest</span> *)request<br>                                                 progress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *uploadProgress))uploadProgressBlock<br>                                        completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-type">id</span> _Nullable responseObject, <span class="hljs-built_in">NSError</span> * _Nullable error))completionHandler;<br><br> <br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> 根据指定的request创建`NSURLSessionDownloadTask`</span><br><span class="hljs-comment"> destination：为确定下载文件的destination而执行的块对象，接收两个参数：target path &amp; server response，并返回下载文件的url</span><br><span class="hljs-comment">*/</span><br><span class="hljs-comment">//需要注意：如果后台会话使用configuration，则当应用终止的时候这个block会丢失。因此后台会话更倾向于用`-setDownloadTaskDidFinishDownloadingBlock:` 来保存下载文件的url</span><br>- (<span class="hljs-built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithRequest:(<span class="hljs-built_in">NSURLRequest</span> *)request<br>                                             progress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *downloadProgress))downloadProgressBlock<br>                                          destination:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURL</span> * (^)(<span class="hljs-built_in">NSURL</span> *targetPath, <span class="hljs-built_in">NSURLResponse</span> *response))destination<br>                                    completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-built_in">NSURL</span> * _Nullable filePath, <span class="hljs-built_in">NSError</span> * _Nullable error))completionHandler;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> 根据指定的resume data创建`NSURLSessionDownloadTask`</span><br><span class="hljs-comment">*/</span><br>- (<span class="hljs-built_in">NSURLSessionDownloadTask</span> *)downloadTaskWithResumeData:(<span class="hljs-built_in">NSData</span> *)resumeData<br>                                                progress:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSProgress</span> *downloadProgress))downloadProgressBlock<br>                                             destination:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURL</span> * (^)(<span class="hljs-built_in">NSURL</span> *targetPath, <span class="hljs-built_in">NSURLResponse</span> *response))destination<br>                                       completionHandler:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-built_in">NSURL</span> * _Nullable filePath, <span class="hljs-built_in">NSError</span> * _Nullable error))completionHandler;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">返回指定任务的NSProcess类型的上传进度</span><br><span class="hljs-comment">*/</span><br>- (<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSProgress</span> *)uploadProgressForTask:(<span class="hljs-built_in">NSURLSessionTask</span> *)task;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">返回指定任务的NSProcess类型的下载进度</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSProgress</span> *)downloadProgressForTask:(<span class="hljs-built_in">NSURLSessionTask</span> *)task;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置session无效时执行的回调块，</span><br><span class="hljs-comment">由`NSURLSessionDelegate` 中的`URLSession:didBecomeInvalidWithError:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setSessionDidBecomeInvalidBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSError</span> *error))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置seesion接收到身份验证时执行的回调块，</span><br><span class="hljs-comment">由`NSURLSessionDelegate` 中的`URLSession:didReceiveChallenge:completionHandler:`来处理</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> @param block 发生身份验证要执行的对象块，返回身份验证的处置，接收三个参数：session、challenge、指向用于解决challenge的指针</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setSessionDidReceiveAuthenticationChallengeBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURLSessionAuthChallengeDisposition</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLAuthenticationChallenge</span> *challenge, <span class="hljs-built_in">NSURLCredential</span> * _Nullable __autoreleasing * _Nullable credential))block;<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置session需要新的stream时执行的回调块，</span><br><span class="hljs-comment">由`NSURLSessionTaskDelegate` 中的`URLSession:task:needNewBodyStream:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setTaskNeedNewBodyStreamBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSInputStream</span> * (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置session需要重定向时执行的回调块，</span><br><span class="hljs-comment">由`NSURLSessionTaskDelegate` 中的`URLSession:willPerformHTTPRedirection:newRequest:completionHandler:`来处理</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block 该block返回重定向后的request，接收四个参数：session、task、重定向的response、接收重定向后的request</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setTaskWillPerformHTTPRedirectionBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURLRequest</span> * _Nullable (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task, <span class="hljs-built_in">NSURLResponse</span> *response, <span class="hljs-built_in">NSURLRequest</span> *request))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed when a session task has received a request specific authentication challenge, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didReceiveChallenge:completionHandler:`.</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> @param authenticationChallengeHandler A block object to be executed when a session task has received a request specific authentication challenge.</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> When implementing an authentication challenge handler, you should check the authentication method first (`challenge.protectionSpace.authenticationMethod `) to decide if you want to handle the authentication challenge yourself or if you want AFNetworking to handle it. If you want AFNetworking to handle the authentication challenge, just return `@(NSURLSessionAuthChallengePerformDefaultHandling)`. For example, you certainly want AFNetworking to handle certificate validation (i.e. authentication method == `NSURLAuthenticationMethodServerTrust`) as defined by the security policy. If you want to handle the challenge yourself, you have four options:</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> 1. Return `nil` from the authentication challenge handler. You **MUST** call the completion handler with a disposition and credentials yourself. Use this if you need to present a user interface to let the user enter their credentials.</span><br><span class="hljs-comment"> 2. Return an `NSError` object from the authentication challenge handler. You **MUST NOT** call the completion handler when returning an `NSError `. The returned error will be reported in the completion handler of the task. Use this if you need to abort an authentication challenge with a specific error.</span><br><span class="hljs-comment"> 3. Return an `NSURLCredential` object from the authentication challenge handler. You **MUST NOT** call the completion handler when returning an `NSURLCredential`. The returned credentials will be used to fulfil the challenge. Use this when you can get credentials without presenting a user interface.</span><br><span class="hljs-comment"> 4. Return an `NSNumber` object wrapping an `NSURLSessionAuthChallengeDisposition`. Supported values are `@(NSURLSessionAuthChallengePerformDefaultHandling)`, `@(NSURLSessionAuthChallengeCancelAuthenticationChallenge)` and `@(NSURLSessionAuthChallengeRejectProtectionSpace)`. You **MUST NOT** call the completion handler when returning an `NSNumber`.</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> If you return anything else from the authentication challenge handler, an exception will be thrown.</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> For more information about how URL sessions handle the different types of authentication challenges, see [NSURLSession](https://developer.apple.com/reference/foundation/nsurlsession?language=objc) and [URL Session Programming Guide](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/URLLoadingSystem/URLLoadingSystem.html).</span><br><span class="hljs-comment"> </span><br><span class="hljs-comment"> @see -securityPolicy</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setAuthenticationChallengeHandler:(<span class="hljs-type">id</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task, <span class="hljs-built_in">NSURLAuthenticationChallenge</span> *challenge, <span class="hljs-type">void</span> (^completionHandler)(<span class="hljs-built_in">NSURLSessionAuthChallengeDisposition</span> , <span class="hljs-built_in">NSURLCredential</span> * _Nullable)))authenticationChallengeHandler;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed periodically to track upload progress, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didSendBodyData:totalBytesSent:totalBytesExpectedToSend:`.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block A block object to be called when an undetermined number of bytes have been uploaded to the server. This block has no return value and takes five arguments: the session, the task, the number of bytes written since the last time the upload progress block was called, the total bytes written, and the total bytes expected to be written during the request, as initially determined by the length of the HTTP body. This block may be called multiple times, and will execute on the main thread.</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setTaskDidSendBodyDataBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task, int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed as the last message related to a specific task, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didCompleteWithError:`.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block A block object to be executed when a session task is completed. The block has no return value, and takes three arguments: the session, the task, and any error that occurred in the process of executing the task.</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setTaskDidCompleteBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task, <span class="hljs-built_in">NSError</span> * _Nullable error))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed when metrics are finalized related to a specific task, as handled by the `NSURLSessionTaskDelegate` method `URLSession:task:didFinishCollectingMetrics:`.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block A block object to be executed when a session task is completed. The block has no return value, and takes three arguments: the session, the task, and any metrics that were collected in the process of executing the task.</span><br><span class="hljs-comment"> */</span><br><span class="hljs-meta">#<span class="hljs-keyword">if</span> AF_CAN_INCLUDE_SESSION_TASK_METRICS</span><br>- (<span class="hljs-type">void</span>)setTaskDidFinishCollectingMetricsBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionTask</span> *task, <span class="hljs-built_in">NSURLSessionTaskMetrics</span> * _Nullable metrics))block AF_API_AVAILABLE(ios(<span class="hljs-number">10</span>), macosx(<span class="hljs-number">10.12</span>), watchos(<span class="hljs-number">3</span>), tvos(<span class="hljs-number">10</span>));<br><span class="hljs-meta">#<span class="hljs-keyword">endif</span></span><br><span class="hljs-comment">///-------------------------------------------</span><br><span class="hljs-comment">/// @name Setting Data Task Delegate Callbacks</span><br><span class="hljs-comment">///-------------------------------------------</span><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed when a data task has received a response, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didReceiveResponse:completionHandler:`.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block A block object to be executed when a data task has received a response. The block returns the disposition of the session response, and takes three arguments: the session, the data task, and the received response.</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDataTaskDidReceiveResponseBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURLSessionResponseDisposition</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDataTask</span> *dataTask, <span class="hljs-built_in">NSURLResponse</span> *response))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment"> Sets a block to be executed when a data task has become a download task, as handled by the `NSURLSessionDataDelegate` method `URLSession:dataTask:didBecomeDownloadTask:`.</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> @param block A block object to be executed when a data task has become a download task. The block has no return value, and takes three arguments: the session, the data task, and the download task it has become.</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDataTaskDidBecomeDownloadTaskBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDataTask</span> *dataTask, <span class="hljs-built_in">NSURLSessionDownloadTask</span> *downloadTask))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置当data task接收到数据时的回调块</span><br><span class="hljs-comment">由`NSURLSessionDataDelegate` 中的`URLSession:dataTask:didReceiveData:`来处理</span><br><span class="hljs-comment">需要注意该block会多次执行，并且在session manager operation queue上执行</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDataTaskDidReceiveDataBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDataTask</span> *dataTask, <span class="hljs-built_in">NSData</span> *data))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置决定data task缓存的回调块</span><br><span class="hljs-comment">由`NSURLSessionDataDelegate` 中的`URLSession:dataTask:willCacheResponse:completionHandler:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDataTaskWillCacheResponseBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSCachedURLResponse</span> * (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDataTask</span> *dataTask, <span class="hljs-built_in">NSCachedURLResponse</span> *proposedResponse))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置会话中排队的所有消息都已交付时的回调块</span><br><span class="hljs-comment">由`NSURLSessionDelegate` 中的`URLSessionDidFinishEventsForBackgroundURLSession:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDidFinishEventsForBackgroundURLSessionBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session))block AF_API_UNAVAILABLE(macos);<br><br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置download task下载完成时的回调块</span><br><span class="hljs-comment">由`NSURLSessionDownloadDelegate` 中的`URLSession:downloadTask:didFinishDownloadingToURL:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDownloadTaskDidFinishDownloadingBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-built_in">NSURL</span> * _Nullable  (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDownloadTask</span> *downloadTask, <span class="hljs-built_in">NSURL</span> *location))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置回调块周期性地查看下载进度，</span><br><span class="hljs-comment">由`NSURLSessionDownloadDelegate` 中的`URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:`来处理</span><br><span class="hljs-comment">需要注意该block会多次执行，并且在session manager operation queue上执行</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDownloadTaskDidWriteDataBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDownloadTask</span> *downloadTask, int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite))block;<br><br><span class="hljs-comment">/**</span><br><span class="hljs-comment">设置当download task ruseme时执行的回调块，</span><br><span class="hljs-comment">由`NSURLSessionDownloadDelegate` 中的`URLSession:downloadTask:didResumeAtOffset:expectedTotalBytes:`来处理</span><br><span class="hljs-comment"> */</span><br>- (<span class="hljs-type">void</span>)setDownloadTaskDidResumeBlock:(<span class="hljs-keyword">nullable</span> <span class="hljs-type">void</span> (^)(<span class="hljs-built_in">NSURLSession</span> *session, <span class="hljs-built_in">NSURLSessionDownloadTask</span> *downloadTask, int64_t fileOffset, int64_t expectedTotalBytes))block;<br><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs cpp"><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">dispatch_queue_t</span> <span class="hljs-title">url_session_manager_processing_queue</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">static</span> <span class="hljs-type">dispatch_queue_t</span> af_url_session_manager_processing_queue;<br>    <span class="hljs-type">static</span> <span class="hljs-type">dispatch_once_t</span> onceToken;<br>    <span class="hljs-built_in">dispatch_once</span>(&amp;onceToken, ^&#123;<br>        af_url_session_manager_processing_queue = <span class="hljs-built_in">dispatch_queue_create</span>(<span class="hljs-string">&quot;com.alamofire.networking.session.manager.processing&quot;</span>, DISPATCH_QUEUE_CONCURRENT);<br>    &#125;);<br><br>    <span class="hljs-keyword">return</span> af_url_session_manager_processing_queue;<br>&#125;<br><br><span class="hljs-function"><span class="hljs-type">static</span> <span class="hljs-type">dispatch_group_t</span> <span class="hljs-title">url_session_manager_completion_group</span><span class="hljs-params">()</span> </span>&#123;<br>    <span class="hljs-type">static</span> <span class="hljs-type">dispatch_group_t</span> af_url_session_manager_completion_group;<br>    <span class="hljs-type">static</span> <span class="hljs-type">dispatch_once_t</span> onceToken;<br>    <span class="hljs-built_in">dispatch_once</span>(&amp;onceToken, ^&#123;<br>        af_url_session_manager_completion_group = <span class="hljs-built_in">dispatch_group_create</span>();<br>    &#125;);<br><br>    <span class="hljs-keyword">return</span> af_url_session_manager_completion_group;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/iOS-networking-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/">iOS networking 源码解析</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/05/25/iOS%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">iOS内存管理之ARC</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/19/NSURLSession%E8%AF%A6%E8%A7%A3/">
+                        <span class="hidden-mobile">NSURLSession详解</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
