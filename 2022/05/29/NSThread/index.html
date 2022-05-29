@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="goggles">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1 NSThread 本文的Demo链接：  1.1 创建并启动线程 先创建线程，再启动线程 123456789- (void)test1&amp;#123;    NSThread *thread &#x3D; [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];    [thread start];&amp;#125;- (">
+<meta property="og:type" content="article">
+<meta property="og:title" content="NSThread">
+<meta property="og:url" content="https://catalyst1998.github.io/2022/05/29/NSThread/index.html">
+<meta property="og:site_name" content="Goggles&#39;s Blog">
+<meta property="og:description" content="1 NSThread 本文的Demo链接：  1.1 创建并启动线程 先创建线程，再启动线程 123456789- (void)test1&amp;#123;    NSThread *thread &#x3D; [[NSThread alloc] initWithTarget:self selector:@selector(run) object:nil];    [thread start];&amp;#125;- (">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://catalyst1998.github.io/img/NSThread/1.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/NSThread/2.png">
+<meta property="og:image" content="https://catalyst1998.github.io/img/NSThread/3.png">
+<meta property="article:published_time" content="2022-05-29T05:29:55.000Z">
+<meta property="article:modified_time" content="2022-05-29T09:49:03.022Z">
+<meta property="article:author" content="goggles">
+<meta property="article:tag" content="iOS 多线程">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://catalyst1998.github.io/img/NSThread/1.png">
+  
+  
+  <title>NSThread - Goggles&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"catalyst1998.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="NSThread">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-29 13:29" pubdate>
+        2022年5月29日 下午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      5.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      47 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">NSThread</h1>
+            
+            <div class="markdown-body">
+              <h1 id="1-NSThread"><a href="#1-NSThread" class="headerlink" title="1 NSThread"></a>1 NSThread</h1><blockquote>
+<p>本文的Demo链接：</p>
+</blockquote>
+<h2 id="1-1-创建并启动线程"><a href="#1-1-创建并启动线程" class="headerlink" title="1.1 创建并启动线程"></a>1.1 创建并启动线程</h2><ol>
+<li><p>先创建线程，再启动线程</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></div></td><td class="code"><pre><code class="hljs objectivec">- (<span class="hljs-type">void</span>)test1&#123;<br>    <span class="hljs-built_in">NSThread</span> *thread = [[<span class="hljs-built_in">NSThread</span> alloc] initWithTarget:<span class="hljs-keyword">self</span> selector:<span class="hljs-keyword">@selector</span>(run) object:<span class="hljs-literal">nil</span>];<br>    [thread start];<br>&#125;<br><br>- (<span class="hljs-type">void</span>)run&#123;<br>    [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;current thread----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>创建线程后自动启动线程</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs objectivec">- (<span class="hljs-type">void</span>)test2&#123;<br>    [<span class="hljs-built_in">NSThread</span> detachNewThreadSelector:<span class="hljs-keyword">@selector</span>(run) toTarget:<span class="hljs-keyword">self</span> withObject:<span class="hljs-literal">nil</span>];<br>&#125;<br><br>- (<span class="hljs-type">void</span>)run&#123;<br>    [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;current thread----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>隐式创建并启动</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs objectivec">- (<span class="hljs-type">void</span>)test3&#123;<br>    [<span class="hljs-built_in">NSThread</span> performSelectorInBackground:<span class="hljs-keyword">@selector</span>(run) withObject:<span class="hljs-literal">nil</span>];<br>&#125;<br><br>- (<span class="hljs-type">void</span>)run&#123;<br>    [<span class="hljs-built_in">NSThread</span> sleepForTimeInterval:<span class="hljs-number">2</span>];<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;current thread----%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>&#125;<br></code></pre></td></tr></table></figure></li>
+</ol>
+<h2 id="1-2-其他API"><a href="#1-2-其他API" class="headerlink" title="1.2 其他API"></a>1.2 其他API</h2><ul>
+<li><p>方法</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-comment">//线程睡眠</span><br>+ (<span class="hljs-type">void</span>)sleepForTimeInterval:(<span class="hljs-built_in">NSTimeInterval</span>)ti;<br><span class="hljs-comment">//获取线程的优先级</span><br>+ (<span class="hljs-type">double</span>)threadPriority;<br><span class="hljs-comment">//设置线程优先级</span><br>+ (<span class="hljs-type">BOOL</span>)setThreadPriority:(<span class="hljs-type">double</span>)p;<br><br></code></pre></td></tr></table></figure>
+</li>
+<li><p>属性</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-keyword">@property</span> (<span class="hljs-keyword">readonly</span>) <span class="hljs-type">BOOL</span> isMainThread;<br><span class="hljs-keyword">@property</span> (<span class="hljs-keyword">class</span>, <span class="hljs-keyword">readonly</span>) <span class="hljs-type">BOOL</span> isMainThread;<br><span class="hljs-keyword">@property</span> (<span class="hljs-keyword">class</span>, <span class="hljs-keyword">readonly</span>, <span class="hljs-keyword">strong</span>) <span class="hljs-built_in">NSThread</span> *currentThread;<br><br></code></pre></td></tr></table></figure></li>
+</ul>
+<h2 id="1-3-线程控制方法"><a href="#1-3-线程控制方法" class="headerlink" title="1.3 线程控制方法"></a>1.3 线程控制方法</h2><ul>
+<li>启动线程<figure class="highlight pgsql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs pgsql">- (<span class="hljs-type">void</span>)<span class="hljs-keyword">start</span>;<br></code></pre></td></tr></table></figure></li>
+<li>阻塞线程<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs objectivec">+ (<span class="hljs-type">void</span>)sleepUntilDate:(<span class="hljs-built_in">NSDate</span> *)date;<br>+ (<span class="hljs-type">void</span>)sleepForTimeInterval:(<span class="hljs-built_in">NSTimeInterval</span>)ti;<br></code></pre></td></tr></table></figure></li>
+<li>停止线程<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">+ (void)<span class="hljs-keyword">exit</span>;<br></code></pre></td></tr></table></figure></li>
+</ul>
+<h1 id="2-线程通信"><a href="#2-线程通信" class="headerlink" title="2 线程通信"></a>2 线程通信</h1><p>在iOS开发中，经常会在其他线程进行耗时操作，执行完之后再回到主线程去更新UI。这就涉及到子线程和主线程之间的通信了.</p>
+<blockquote>
+<p>这一块在GCD中也有涉及，可以<a target="_blank" rel="noopener" href="https://goggles-blog.vercel.app/2022/05/25/Grand-Central-Dispatch/#5-GCD%E7%BA%BF%E7%A8%8B%E9%97%B4%E7%9A%84%E9%80%9A%E4%BF%A1">参考</a></p>
+</blockquote>
+<p>先了解下官方提供的NSThread中用于线程通信的方法。</p>
+<figure class="highlight erlang"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs erlang">// 在主线程上执行操作<br>- <span class="hljs-params">(void)</span>performSelectorOnMainThread:<span class="hljs-params">(SEL)</span>aSelector withObject:<span class="hljs-params">(id)</span>arg waitUntilDone:<span class="hljs-params">(BOOL)</span>wait;<br>- <span class="hljs-params">(void)</span>performSelectorOnMainThread:<span class="hljs-params">(SEL)</span>aSelector withObject:<span class="hljs-params">(id)</span>arg waitUntilDone:<span class="hljs-params">(BOOL)</span>wait modes:<span class="hljs-params">(NSArray&lt;NSString *&gt; *)</span>array;<br>  // equivalent to the first method with kCFRunLoopCommonModes<br><br>// 在指定线程上执行操作<br>- <span class="hljs-params">(void)</span>performSelector:<span class="hljs-params">(SEL)</span>aSelector onThread:<span class="hljs-params">(NSThread *)</span>thr withObject:<span class="hljs-params">(id)</span>arg waitUntilDone:<span class="hljs-params">(BOOL)</span>wait modes:<span class="hljs-params">(NSArray *)</span>array NS_AVAILABLE<span class="hljs-params">(<span class="hljs-number">10_5</span>, <span class="hljs-number">2_0</span>)</span>;<br>- <span class="hljs-params">(void)</span>performSelector:<span class="hljs-params">(SEL)</span>aSelector onThread:<span class="hljs-params">(NSThread *)</span>thr withObject:<span class="hljs-params">(id)</span>arg waitUntilDone:<span class="hljs-params">(BOOL)</span>wait NS_AVAILABLE<span class="hljs-params">(<span class="hljs-number">10_5</span>, <span class="hljs-number">2_0</span>)</span>;<br><br>// 在当前线程上执行操作，调用 NSObject 的 performSelector:相关方法<br>- <span class="hljs-params">(id)</span>performSelector:<span class="hljs-params">(SEL)</span>aSelector;<br>- <span class="hljs-params">(id)</span>performSelector:<span class="hljs-params">(SEL)</span>aSelector withObject:<span class="hljs-params">(id)</span>object;<br>- <span class="hljs-params">(id)</span>performSelector:<span class="hljs-params">(SEL)</span>aSelector withObject:<span class="hljs-params">(id)</span>object1 withObject:<span class="hljs-params">(id)</span>object2;<br><br></code></pre></td></tr></table></figure>
+
+<p>下面通过下载网络图片的demo来演示线程之间的通信</p>
+<ol>
+<li>开一个线程，在线程中执行下载图片的逻辑</li>
+<li>返回主线程更新ui，将图片展示到UIImageView中</li>
+</ol>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs objectivec">- (<span class="hljs-type">void</span>)downloadImgOnThread&#123;<br>    [<span class="hljs-built_in">NSThread</span> detachNewThreadSelector:<span class="hljs-keyword">@selector</span>(downloadImg) toTarget:<span class="hljs-keyword">self</span> withObject:<span class="hljs-literal">nil</span>];<br>&#125;<br><br><br>- (<span class="hljs-type">void</span>)downloadImg&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;begin download----thread:%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <br>    <span class="hljs-built_in">NSURL</span> *imgUrl = [<span class="hljs-built_in">NSURL</span> URLWithString:<span class="hljs-string">@&quot;https://pic.leetcode-cn.com/1646910868-wkWFEj-%E6%A6%82%E7%8E%87%E9%A2%98%E9%9D%A2%E8%AF%95%E7%AA%81%E5%87%BB.png?x-oss-process=image%2Fformat%2Cwebp&quot;</span>];<br>    <br>    <span class="hljs-built_in">NSData</span> *imageData = [<span class="hljs-built_in">NSData</span> dataWithContentsOfURL:imgUrl];<br>    <br>    <span class="hljs-built_in">UIImage</span> *image = [<span class="hljs-built_in">UIImage</span> imageWithData:imageData];<br>    <br>    [<span class="hljs-keyword">self</span> performSelectorOnMainThread:<span class="hljs-keyword">@selector</span>(refreshUI:) withObject:image waitUntilDone:<span class="hljs-literal">YES</span>];<br>&#125;<br><br>- (<span class="hljs-type">void</span>)refreshUI:(<span class="hljs-built_in">UIImage</span> *)image&#123;<br>    <span class="hljs-built_in">NSLog</span>(<span class="hljs-string">@&quot;update ui --- thread:%@&quot;</span>,[<span class="hljs-built_in">NSThread</span> currentThread]);<br>    <br>    <span class="hljs-keyword">self</span>.imageView.image = image;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>输出结果：</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">29</span> <span class="hljs-number">16</span>:<span class="hljs-number">57</span>:<span class="hljs-number">26</span>.<span class="hljs-number">545724</span>+<span class="hljs-number">0800</span> DemoForNSThread[<span class="hljs-number">77630</span>:<span class="hljs-number">1441161</span>] begin download----thread:&lt;NSThread: <span class="hljs-number">0</span>x600000d20280&gt;&#123;number = <span class="hljs-number">6</span>, name = (null)&#125;<br><span class="hljs-attribute">2022</span>-<span class="hljs-number">05</span>-<span class="hljs-number">29</span> <span class="hljs-number">16</span>:<span class="hljs-number">57</span>:<span class="hljs-number">26</span>.<span class="hljs-number">707026</span>+<span class="hljs-number">0800</span> DemoForNSThread[<span class="hljs-number">77630</span>:<span class="hljs-number">1441123</span>]<span class="hljs-meta"> [boringssl] boringssl_metrics_log_metric_block_invoke(153) Failed to log metrics</span><br><span class="hljs-meta">2022-05-29 16:57:26.809738+0800 DemoForNSThread[77630:1440965] update ui --- thread:&lt;_NSMainThread: 0x600000d74880&gt;&#123;number = 1, name = main&#125;</span><br></code></pre></td></tr></table></figure>
+<p><img src="/../img/NSThread/1.png" srcset="/img/loading.gif" lazyload alt="更新后的界面"></p>
+<h1 id="3-NSThread线程安全和线程同步"><a href="#3-NSThread线程安全和线程同步" class="headerlink" title="3 NSThread线程安全和线程同步"></a>3 NSThread线程安全和线程同步</h1><blockquote>
+<p>这一块在GCD也有提到，可以<a target="_blank" rel="noopener" href="https://goggles-blog.vercel.app/2022/05/25/Grand-Central-Dispatch/#6-7-1-%E7%BA%BF%E7%A8%8B%E5%90%8C%E6%AD%A5">参考</a></p>
+</blockquote>
+<p>这一块以卖票为例子，实现NSThread线程安全和线程同步问题。<br>需求：有100张演出票，两个窗口，分别售卖万能青年旅店、新裤子的票。</p>
+<h2 id="3-1-非线程安全"><a href="#3-1-非线程安全" class="headerlink" title="3.1 非线程安全"></a>3.1 非线程安全</h2><p>先看非线程安全的代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-operator">-</span> (void)noSafeClick&#123;<br>    [<span class="hljs-keyword">self</span> initTickerStatusNotSafe];<br>&#125;<br><br><span class="hljs-operator">-</span> (void)initTickerStatusNotSafe&#123;<br>    <span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">=</span> <span class="hljs-number">100</span>;<br>    <br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw1 <span class="hljs-operator">=</span> [[<span class="hljs-type">NSThread</span> alloc] initWithTarget:<span class="hljs-keyword">self</span> selector:<span class="hljs-meta">@selector</span>(saleTicketNotSafe) object:<span class="hljs-literal">nil</span>];<br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw1.name <span class="hljs-operator">=</span> @<span class="hljs-string">&quot;万能青年旅店&quot;</span>;<br>    <br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw2 <span class="hljs-operator">=</span> [[<span class="hljs-type">NSThread</span> alloc] initWithTarget:<span class="hljs-keyword">self</span> selector:<span class="hljs-meta">@selector</span>(saleTicketNotSafe) object:<span class="hljs-literal">nil</span>];<br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw2.name <span class="hljs-operator">=</span> @<span class="hljs-string">&quot;新裤子&quot;</span>;<br>    <br>    [<span class="hljs-keyword">self</span>.ticketSaleWinodw1 start];<br>    [<span class="hljs-keyword">self</span>.ticketSaleWinodw2 start];<br>&#125;<br><br><span class="hljs-operator">-</span> (void)saleTicketNotSafe&#123;<br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>        <span class="hljs-keyword">if</span>(<span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span>)&#123;<br>            <span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">--</span>;<br>            <span class="hljs-type">NSLog</span>(@<span class="hljs-string">&quot;%@&quot;</span>,[<span class="hljs-type">NSString</span> stringWithFormat:@<span class="hljs-string">&quot;剩余票数：%1lu 窗口：%@&quot;</span>,(unsigned long)<span class="hljs-keyword">self</span>.ticketCount,[<span class="hljs-type">NSThread</span> currentThread].name]);<br>            [<span class="hljs-type">NSThread</span> sleepForTimeInterval:<span class="hljs-number">0.2</span>];<br>        &#125;<span class="hljs-keyword">else</span>&#123;<br>            <span class="hljs-type">NSLog</span>(@<span class="hljs-string">&quot;sold out&quot;</span>);<br>            <span class="hljs-keyword">break</span>;<br>        &#125;<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<p>查看输出结果：<br><img src="/../img/NSThread/2.png" srcset="/img/loading.gif" lazyload><br>可以发现出现数据竞争的概率非常大，这在现实的开发中是不允许的。</p>
+<h2 id="3-2-线程安全"><a href="#3-2-线程安全" class="headerlink" title="3.2 线程安全"></a>3.2 线程安全</h2><p>线程安全解决方案：可以给线程加锁，在一个线程执行该操作的时候，不允许其他线程进行操作。iOS 实现线程加锁有很多种方式。@synchronized、 NSLock、NSRecursiveLock、NSCondition、NSConditionLock、pthread_mutex、dispatch_semaphore、OSSpinLock、atomic(property) set&#x2F;ge等等各种方式。为了简单起见，这里不对各种锁的解决方案和性能做分析，只用最简单的@synchronized来保证线程安全，从而解决线程同步问题。</p>
+<p>代码：</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-operator">-</span> (void)safeClick&#123;<br>    [<span class="hljs-keyword">self</span> initTicketStatusSafe];<br>&#125;<br><br><span class="hljs-operator">-</span> (void)initTicketStatusSafe&#123;<br>    <span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">=</span> <span class="hljs-number">100</span>;<br>    <br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw1 <span class="hljs-operator">=</span> [[<span class="hljs-type">NSThread</span> alloc] initWithTarget:<span class="hljs-keyword">self</span> selector:<span class="hljs-meta">@selector</span>(saleTicketSafe) object:<span class="hljs-literal">nil</span>];<br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw1.name <span class="hljs-operator">=</span> @<span class="hljs-string">&quot;万能青年旅店&quot;</span>;<br>    <br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw2 <span class="hljs-operator">=</span> [[<span class="hljs-type">NSThread</span> alloc] initWithTarget:<span class="hljs-keyword">self</span> selector:<span class="hljs-meta">@selector</span>(saleTicketSafe) object:<span class="hljs-literal">nil</span>];<br>    <span class="hljs-keyword">self</span>.ticketSaleWinodw2.name <span class="hljs-operator">=</span> @<span class="hljs-string">&quot;新裤子&quot;</span>;<br>    <br>    [<span class="hljs-keyword">self</span>.ticketSaleWinodw1 start];<br>    [<span class="hljs-keyword">self</span>.ticketSaleWinodw2 start];<br>&#125;<br><br><span class="hljs-operator">-</span> (void)saleTicketSafe&#123;<br>    <span class="hljs-keyword">while</span>(<span class="hljs-number">1</span>)&#123;<br>        <span class="hljs-meta">@synchronized</span> (<span class="hljs-keyword">self</span>) &#123;<br>            <span class="hljs-keyword">if</span>(<span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">&gt;</span> <span class="hljs-number">0</span>)&#123;<br>                <span class="hljs-keyword">self</span>.ticketCount <span class="hljs-operator">--</span>;<br>                <span class="hljs-type">NSLog</span>(@<span class="hljs-string">&quot;%@&quot;</span>,[<span class="hljs-type">NSString</span> stringWithFormat:@<span class="hljs-string">&quot;卖出：%@ 一张，剩余票：%d &quot;</span>,[<span class="hljs-type">NSThread</span> currentThread].name,<span class="hljs-keyword">self</span>.ticketCount]);<br>                [<span class="hljs-type">NSThread</span> sleepForTimeInterval:<span class="hljs-number">0.2</span>];<br>            <br>            &#125;<span class="hljs-keyword">else</span>&#123;<br>                <span class="hljs-type">NSLog</span>(@<span class="hljs-string">&quot;sold out&quot;</span>);<br>                <span class="hljs-keyword">break</span>;<br>            &#125;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出：<br><img src="/../img/NSThread/3.png" srcset="/img/loading.gif" lazyload></p>
+<p><em>参考：</em></p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6844903556009443335">iOS多线程：『pthread、NSThread』详尽总结</a></li>
+</ul>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B/">iOS 多线程</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/25/Grand-Central-Dispatch/">
+                        <span class="hidden-mobile">Grand Central Dispatch</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
