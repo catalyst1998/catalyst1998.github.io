@@ -1,0 +1,485 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.png">
+  <link rel="icon" href="/img/favicon.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="goggles">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="1 Overview1.1 什么是RunLoop？ 本文主要研究CFRunLoop  苹果官方对runloop的描述：  A CFRunLoop object monitors sources of input to a task and dispatches control when they become ready for processing. Examples of input sour">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RunLoop">
+<meta property="og:url" content="https://catalyst1998.github.io/2022/05/30/RunLoop/index.html">
+<meta property="og:site_name" content="Goggles&#39;s Blog">
+<meta property="og:description" content="1 Overview1.1 什么是RunLoop？ 本文主要研究CFRunLoop  苹果官方对runloop的描述：  A CFRunLoop object monitors sources of input to a task and dispatches control when they become ready for processing. Examples of input sour">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://catalyst1998.github.io/img/RunLoop/1.png">
+<meta property="article:published_time" content="2022-05-30T02:38:15.000Z">
+<meta property="article:modified_time" content="2022-05-30T15:35:16.664Z">
+<meta property="article:author" content="goggles">
+<meta property="article:tag" content="iOS 多线程">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://catalyst1998.github.io/img/RunLoop/1.png">
+  
+  
+  <title>RunLoop - Goggles&#39;s Blog</title>
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/css/bootstrap.min.css" />
+
+
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@4/github-markdown.min.css" />
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/hint.css@2/hint.min.css" />
+
+  
+    
+    
+      
+      <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10/styles/github-gist.min.css" />
+    
+  
+
+  
+    <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.css" />
+  
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_ba1fz6golrf.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+<!-- 自定义样式保持在最底部 -->
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    var CONFIG = {"hostname":"catalyst1998.github.io","root":"/","version":"1.8.14","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"right","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"copy_btn":true,"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"baidu":null,"google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":"window.location.pathname","ignore_local":false}},"search_path":"/local-search.xml"};
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+
+<body>
+  <header style="height: 70vh;">
+    <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Fluid</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <div class="banner" id="banner" parallax=true
+         style="background: url('/img/default.png') no-repeat center center;
+           background-size: cover;">
+      <div class="full-bg-img">
+        <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+          <div class="page-header text-center fade-in-up">
+            <span class="h2" id="subtitle" title="RunLoop">
+              
+            </span>
+
+            
+              <div class="mt-3">
+  
+  
+    <span class="post-meta">
+      <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+      <time datetime="2022-05-30 10:38" pubdate>
+        2022年5月30日 上午
+      </time>
+    </span>
+  
+</div>
+
+<div class="mt-1">
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-chart"></i>
+      3.6k 字
+    </span>
+  
+
+  
+    <span class="post-meta mr-2">
+      <i class="iconfont icon-clock-fill"></i>
+      
+      
+      30 分钟
+    </span>
+  
+
+  
+  
+</div>
+
+            
+          </div>
+
+          
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="d-none d-lg-block col-lg-2"></div>
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div class="py-5" id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">RunLoop</h1>
+            
+            <div class="markdown-body">
+              <h1 id="1-Overview"><a href="#1-Overview" class="headerlink" title="1 Overview"></a>1 Overview</h1><h2 id="1-1-什么是RunLoop？"><a href="#1-1-什么是RunLoop？" class="headerlink" title="1.1 什么是RunLoop？"></a>1.1 什么是RunLoop？</h2><blockquote>
+<p>本文主要研究CFRunLoop</p>
+</blockquote>
+<p>苹果官方对runloop的描述：</p>
+<blockquote>
+<p>A CFRunLoop object monitors sources of input to a task and dispatches control when they become ready for processing. Examples of input sources might include user input devices, network connections, periodic or time-delayed events, and asynchronous callbacks.</p>
+</blockquote>
+<p>一般来说，线程执行完一次任务后线程就会退出。在iOS应用程序中存在一个主线程，主线程主要负责UI部分，有时候我们打开应用并不是一直点击的，主线就需要等待touch事件触发，然后分发事件处理事件，更新ui，所以主线程是不能退出的。因此我们需要一个机制，能够使得线程一直循环不退出，这种模型称为event loop。</p>
+<p>runloop实际上是一个对象，这个对象在循环中处理程序运行时的各种事件（如触摸事件、ui刷新事件、定时器事件、selector事件）从而保证程序的继续运行。</p>
+<h2 id="1-2-RunLopp和线程的关系"><a href="#1-2-RunLopp和线程的关系" class="headerlink" title="1.2 RunLopp和线程的关系"></a>1.2 RunLopp和线程的关系</h2><p>苹果不允许直接创建 RunLoop，它只提供了两个自动获取的函数：CFRunLoopGetMain() 和 CFRunLoopGetCurrent()。 这两个函数内部的逻辑大概是下面这样：</p>
+<figure class="highlight reasonml"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></div></td><td class="code"><pre><code class="hljs reasonml"><span class="hljs-comment">/// 全局的Dictionary，key 是 pthread_t， value 是 CFRunLoopRef</span><br>static CFMutableDictionaryRef loopsDic;<br><span class="hljs-comment">/// 访问 loopsDic 时的锁</span><br>static CFSpinLock_t loopsLock;<br> <br><span class="hljs-comment">/// 获取一个 pthread 对应的 RunLoop。</span><br>CFRunLoopRef <span class="hljs-constructor">_CFRunLoopGet(<span class="hljs-params">pthread_t</span> <span class="hljs-params">thread</span>)</span> &#123;<br>    <span class="hljs-constructor">OSSpinLockLock(&amp;<span class="hljs-params">loopsLock</span>)</span>;<br>    <br>    <span class="hljs-keyword">if</span> (!loopsDic) &#123;<br>        <span class="hljs-comment">// 第一次进入时，初始化全局Dic，并先为主线程创建一个 RunLoop。</span><br>        loopsDic = <span class="hljs-constructor">CFDictionaryCreateMutable()</span>;<br>        CFRunLoopRef mainLoop = <span class="hljs-constructor">_CFRunLoopCreate()</span>;<br>        <span class="hljs-constructor">CFDictionarySetValue(<span class="hljs-params">loopsDic</span>, <span class="hljs-params">pthread_main_thread_np</span>()</span>, mainLoop);<br>    &#125;<br>    <br>    <span class="hljs-comment">/// 直接从 Dictionary 里获取。</span><br>    CFRunLoopRef loop = <span class="hljs-constructor">CFDictionaryGetValue(<span class="hljs-params">loopsDic</span>, <span class="hljs-params">thread</span>)</span>);<br>    <br>    <span class="hljs-keyword">if</span> (!loop) &#123;<br>        <span class="hljs-comment">/// 取不到时，创建一个</span><br>        loop = <span class="hljs-constructor">_CFRunLoopCreate()</span>;<br>        <span class="hljs-constructor">CFDictionarySetValue(<span class="hljs-params">loopsDic</span>, <span class="hljs-params">thread</span>, <span class="hljs-params">loop</span>)</span>;<br>        <span class="hljs-comment">/// 注册一个回调，当线程销毁时，顺便也销毁其对应的 RunLoop。</span><br>        <span class="hljs-constructor">_CFSetTSD(<span class="hljs-operator">...</span>, <span class="hljs-params">thread</span>, <span class="hljs-params">loop</span>, <span class="hljs-params">__CFFinalizeRunLoop</span>)</span>;<br>    &#125;<br>    <br>    <span class="hljs-constructor">OSSpinLockUnLock(&amp;<span class="hljs-params">loopsLock</span>)</span>;<br>    return loop;<br>&#125;<br> <br>CFRunLoopRef <span class="hljs-constructor">CFRunLoopGetMain()</span> &#123;<br>    return <span class="hljs-constructor">_CFRunLoopGet(<span class="hljs-params">pthread_main_thread_np</span>()</span>);<br>&#125;<br> <br>CFRunLoopRef <span class="hljs-constructor">CFRunLoopGetCurrent()</span> &#123;<br>    return <span class="hljs-constructor">_CFRunLoopGet(<span class="hljs-params">pthread_self</span>()</span>);<br>&#125;<br><br></code></pre></td></tr></table></figure>
+<p>从上面的代码可以看出:</p>
+<ul>
+<li>一个线程对应一个RunLoop对象，其关系是保存在一个全局的 Dictionary里。</li>
+<li>runloop不保证线程安全，只能在当前线程内去操作当前线程的runloop对象</li>
+<li>线程刚创建时并没有 RunLoop，如果你不主动获取，那它一直都不会有。RunLoop 的创建是发生在第一次获取时，RunLoop 的销毁是发生在线程结束时。你只能在一个线程的内部获取其 RunLoop（主线程除外）。</li>
+<li>主线程的runloop对象系统已经自动创建好了，而子线程的runloop对象需要我们自己创建和维护</li>
+</ul>
+<h2 id="1-3-默认情况下主线程的runloop原理"><a href="#1-3-默认情况下主线程的runloop原理" class="headerlink" title="1.3 默认情况下主线程的runloop原理"></a>1.3 默认情况下主线程的runloop原理</h2><p>在我们启动应用程序的时候，系统会调用main.m文件内的main函数</p>
+<figure class="highlight objectivec"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs objectivec"><span class="hljs-type">int</span> main(<span class="hljs-type">int</span> argc,<span class="hljs-type">char</span> *argv[])&#123;<br>    <span class="hljs-keyword">@autoreleasepool</span>&#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-built_in">UIApplicationMain</span>(argc,argv,<span class="hljs-literal">nil</span>,<span class="hljs-built_in">NSStringFormClass</span>([AppDelegate <span class="hljs-keyword">class</span>]));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<p>UIApplication内部会开启主线程的runloop，因此UIApplication一直没有返回，程序不会马上退出会保持一个运行状态。</p>
+<h1 id="2-RunLoop相关类"><a href="#2-RunLoop相关类" class="headerlink" title="2 RunLoop相关类"></a>2 RunLoop相关类</h1><p>Core Foundation框架下关于runloop的五个类：</p>
+<ol>
+<li>CFRunLoopRef：代表RunLoop的对象</li>
+<li>CFRunLoopModeRef：代表RunLoop的运行模式</li>
+<li>CFRunLoopSourceRef：就是 RunLoop 模型图中提到的输入源 &#x2F; 事件源</li>
+<li>CFRunLoopTimerRef：就是 RunLoop 模型图中提到的定时源</li>
+<li>CFRunLoopObserverRef：观察者，能够监听 RunLoop 的状态改变</li>
+</ol>
+<p>其中CFRunLoopModeRef类并没有对外暴露，只是通过CFRunLoopModeRef接口进行封装。<br><img src="/../img/RunLoop/1.png" srcset="/img/loading.gif" lazyload></p>
+<p>一个CFRunLoop包含若干个Mode，每个Mode包含若干个Source&#x2F;Timer&#x2F;Observer。每次调用runloop时，只能指定一个mode，该mode称为currentMode，如果要切换mode需要退出loop，重新指定mode进入。这样是为了分割不同组的Source&#x2F;Timer&#x2F;Observer。</p>
+<p>下面详细看看这五个类</p>
+<h2 id="2-1-CFRunLoopRef类"><a href="#2-1-CFRunLoopRef类" class="headerlink" title="2.1 CFRunLoopRef类"></a>2.1 CFRunLoopRef类</h2><p>CFRunLoopRef类是core foundation框架下的runloop对象类，可以通过以下的方法来获得runloop对象:</p>
+<ul>
+<li>Core Foundation<ul>
+<li><code>CFRunLoopGetCurrent();</code>    &#x2F;&#x2F;获取当前线程的runloop对象</li>
+<li><code>CFRunLoopGetMain();</code>   &#x2F;&#x2F;获取主线程的runloop对象</li>
+</ul>
+</li>
+<li>Foundation<ul>
+<li><code>[NSRunLoop currentRunLoop];</code>   &#x2F;&#x2F;获取当前线程的runloop对象</li>
+<li><code>[NSRunLoop mainRunLoop];</code>  &#x2F;&#x2F;获取主线程的runloop对象</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-2-CFRunLoopModeRef类"><a href="#2-2-CFRunLoopModeRef类" class="headerlink" title="2.2 CFRunLoopModeRef类"></a>2.2 CFRunLoopModeRef类</h2><p>CFRunLoopMode和CFRunLoop的结构大致如下：</p>
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs awk">struct __CFRunLoopMode &#123;<br>    CFStringRef _name;            <span class="hljs-regexp">//</span> Mode Name, 例如 @<span class="hljs-string">&quot;kCFRunLoopDefaultMode&quot;</span><br>    CFMutableSetRef _sources0;    <span class="hljs-regexp">//</span> Set<br>    CFMutableSetRef _sources1;    <span class="hljs-regexp">//</span> Set<br>    CFMutableArrayRef _observers; <span class="hljs-regexp">//</span> Array<br>    CFMutableArrayRef _timers;    <span class="hljs-regexp">//</span> Array<br>    ...<br>&#125;;<br> <br>struct __CFRunLoop &#123;<br>    CFMutableSetRef _commonModes;     <span class="hljs-regexp">//</span> Set<br>    CFMutableSetRef _commonModeItems; <span class="hljs-regexp">//</span> Set&lt;Source<span class="hljs-regexp">/Observer/</span>Timer&gt;<br>    CFRunLoopModeRef _currentMode;    <span class="hljs-regexp">//</span> Current Runloop Mode<br>    CFMutableSetRef _modes;           <span class="hljs-regexp">//</span> Set<br>    ...<br>&#125;;<br></code></pre></td></tr></table></figure>
+
+<p>注意，这里有一个“commonModes”的概念：一个Mode可以通过将其modeName添加到runloop的commonModes中，使得该mode标记为common属性。每当runloop的内容发生变化时，runloop会自动将_commonModeItems里的Source&#x2F;Observer&#x2F;Timer同步到common标记的所有mode中</p>
+
+            </div>
+            <hr>
+            <div>
+              <div class="post-metas mb-3">
+                
+                
+                  <div class="post-meta">
+                    <i class="iconfont icon-tags"></i>
+                    
+                      <a class="hover-with-bg" href="/tags/iOS-%E5%A4%9A%E7%BA%BF%E7%A8%8B/">iOS 多线程</a>
+                    
+                  </div>
+                
+              </div>
+              
+                <p class="note note-warning">
+                  
+                    本博客所有文章除特别声明外，均采用 <a target="_blank" href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh" rel="nofollow noopener noopener">CC BY-SA 4.0 协议</a> ，转载请注明出处！
+                  
+                </p>
+              
+              
+                <div class="post-prevnext">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/05/29/NSThread/">
+                        <span class="hidden-mobile">NSThread</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+          </article>
+        </div>
+      </div>
+    </div>
+    
+      <div class="d-none d-lg-block col-lg-2 toc-container" id="toc-ctn">
+        <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+      </div>
+    
+  </div>
+</div>
+
+<!-- Custom -->
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v"
+                 for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+
+    
+  </main>
+
+  <footer class="text-center mt-5 py-3">
+  <div class="footer-content">
+     <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a> 
+  </div>
+  
+
+  
+
+  
+</footer>
+
+
+  <!-- SCRIPTS -->
+  
+  <script  src="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nprogress@0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js" ></script>
+<script  src="https://cdn.jsdelivr.net/npm/bootstrap@4/dist/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+<!-- Plugins -->
+
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+  
+
+
+
+  
+    <script  src="https://cdn.jsdelivr.net/npm/tocbot@4/dist/tocbot.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@3/dist/jquery.fancybox.min.js" ></script>
+  
+  
+    <script  src="https://cdn.jsdelivr.net/npm/anchor-js@4/anchor.min.js" ></script>
+  
+  
+    <script defer src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js" ></script>
+  
+
+
+
+
+
+
+  <script  src="https://cdn.jsdelivr.net/npm/typed.js@2/lib/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var title = document.getElementById('subtitle').title;
+      
+        typing(title);
+      
+    })(window, document);
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 主题的启动项 保持在最底部 -->
+<script  src="/js/boot.js" ></script>
+
+
+</body>
+</html>
